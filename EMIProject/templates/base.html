@@ -1,0 +1,482 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FinTrack{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/modern_theme.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ledger.css' %}">
+    <style>
+        .dropdown-groww-panel {
+            position: absolute;
+            top: 55px;
+            right: 0;
+            width: 280px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            opacity: 0;
+            visibility: hidden;
+            display: none;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 9999;
+        }
+
+        .dropdown-groww-panel.active {
+            opacity: 1 !important;
+            visibility: visible !important;
+            display: block !important;
+            transform: translateY(0) !important;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .dropdown-item:hover {
+            background: var(--accent-blue-subtle);
+            color: var(--accent-blue);
+        }
+
+        .dropdown-item i {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+            opacity: 0.7;
+        }
+
+        .user-profile {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: var(--accent-blue-subtle);
+            color: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            box-shadow: 0 4px 10px -2px rgba(37, 99, 235, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .user-profile:hover {
+            transform: scale(1.05);
+        }
+
+        .avatar {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--accent-blue);
+        }
+
+        /* Search Bar Styles */
+        .search-container-groww {
+            flex-grow: 1;
+            max-width: 480px;
+            margin: 0 24px;
+        }
+
+        @media (max-width: 768px) {
+            .search-container-groww {
+                margin: 0 12px;
+                max-width: 100%;
+            }
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-input-groww {
+            width: 100%;
+            padding: 12px 16px 12px 42px;
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+            background: var(--bg-card);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .search-input-groww:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+            font-size: 1rem;
+            transition: color 0.2s;
+        }
+
+        .search-input-groww:focus+.search-icon {
+            color: var(--accent-blue);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body data-theme="light">
+    <div id="app">
+        <main class="main-wrapper" style="margin-left: 0; width: 100%;">
+            <div class="navbar-groww">
+                <div class="nav-left">
+                    <div class="mobile-only" style="margin-right: 12px;">
+                        <button class="btn-icon" id="mobileMenuBtn">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                    </div>
+                    <a href="{% url 'home' %}" class="brand-logo-text"
+                        style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-chart-line" style="color: var(--accent-blue); font-size: 1.4rem;"></i>
+                        FinTrack
+                    </a>
+
+                    <!-- Mobile Menu Dropdown -->
+                    <div class="dropdown-groww-panel glass-panel" id="mobileMenu"
+                        style="left: 16px; width: 220px; top: 60px;">
+                        <a href="{% url 'home' %}" class="dropdown-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+                        <a href="{% url 'expense_list' %}" class="dropdown-item"><i class="fa-solid fa-receipt"></i>
+                            Expenses</a>
+                        <a href="{% url 'loan_list' %}" class="dropdown-item"><i
+                                class="fa-solid fa-building-columns"></i> Loans</a>
+                        <a href="{% url 'saving_list' %}" class="dropdown-item"><i class="fa-solid fa-piggy-bank"></i>
+                            Savings</a>
+                        <a href="{% url 'investment_list' %}" class="dropdown-item"><i
+                                class="fa-solid fa-chart-line"></i> Investments</a>
+                        <a href="{% url 'policy_list' %}" class="dropdown-item"><i class="fa-solid fa-shield-heart"></i>
+                            Insurance</a>
+                        <a href="{% url 'analytics' %}" class="dropdown-item"><i class="fa-solid fa-chart-pie"></i>
+                            Analytics</a>
+                        <a href="{% url 'emi_calculator' %}" class="dropdown-item"><i
+                                class="fa-solid fa-calculator"></i> Calculator</a>
+                    </div>
+                    <nav class="nav-links-desktop">
+                        <a href="{% url 'home' %}"
+                            class="nav-link-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Dashboard</a>
+                        <a href="{% url 'expense_list' %}"
+                            class="nav-link-item {% if request.resolver_match.url_name == 'expense_list' %}active{% endif %}">Expenses</a>
+                        <a href="{% url 'loan_list' %}"
+                            class="nav-link-item {% if request.resolver_match.url_name == 'loan_list' %}active{% endif %}">Loans</a>
+                        <a href="{% url 'saving_list' %}"
+                            class="nav-link-item {% if request.resolver_match.url_name == 'saving_list' %}active{% endif %}">Savings</a>
+                        <a href="{% url 'investment_list' %}"
+                            class="nav-link-item {% if request.resolver_match.url_name == 'investment_list' %}active{% endif %}">Investments</a>
+                        <a href="{% url 'policy_list' %}"
+                            class="nav-link-item {% if request.resolver_match.url_name == 'policy_list' %}active{% endif %}">Policies
+                            & Insurance</a>
+                        <a href="{% url 'analytics' %}"
+                            class="nav-link-item {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">Analytics</a>
+                        <a href="{% url 'emi_calculator' %}"
+                            class="nav-link-item {% if request.resolver_match.url_name == 'emi_calculator' %}active{% endif %}">Calculator</a>
+                    </nav>
+                </div>
+
+                <!-- Groww Style Search Bar -->
+                <div class="search-container-groww">
+                    <form action="{% url 'search' %}" method="GET" class="search-input-wrapper" id="globalSearchForm"
+                        onsubmit="return handleSmartSearch(event)">
+                        <input type="text" name="q" id="globalSearchInput" class="search-input-groww"
+                            placeholder="Search 'Loans', 'Investments' or Stocks..." autocomplete="off"
+                            style="padding-right: 48px;">
+                        <i class="fa-solid fa-search search-icon"></i>
+                        <button type="button" class="google-search-btn" onclick="searchGoogle()"
+                            title="Search Stocks on Google">
+                            <i class="fa-brands fa-google"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <script>
+                    const APP_ROUTES = {
+                        'dashboard': "{% url 'home' %}",
+                        'home': "{% url 'home' %}",
+                        'expense': "{% url 'expense_list' %}",
+                        'expenses': "{% url 'expense_list' %}",
+                        'loan': "{% url 'loan_list' %}",
+                        'loans': "{% url 'loan_list' %}",
+                        'emi': "{% url 'loan_list' %}",
+                        'saving': "{% url 'saving_list' %}",
+                        'savings': "{% url 'saving_list' %}",
+                        'invest': "{% url 'investment_list' %}",
+                        'investment': "{% url 'investment_list' %}",
+                        'investments': "{% url 'investment_list' %}",
+                        'policy': "{% url 'policy_list' %}",
+                        'policies': "{% url 'policy_list' %}",
+                        'insurance': "{% url 'policy_list' %}",
+                        'calc': "{% url 'emi_calculator' %}",
+                        'calculator': "{% url 'emi_calculator' %}",
+                        'analytics': "{% url 'analytics' %}",
+                        'stats': "{% url 'analytics' %}"
+                    };
+
+                    function handleSmartSearch(e) {
+                        const query = document.getElementById('globalSearchInput').value.toLowerCase().trim();
+
+                        // 1. Check for App Route Shortcuts
+                        if (APP_ROUTES[query]) {
+                            e.preventDefault();
+                            window.location.href = APP_ROUTES[query];
+                            return false;
+                        }
+
+                        // 2. Default: Let form submit to Local DB Search
+                        return true;
+                    }
+
+                    function searchGoogle() {
+                        const query = document.getElementById('globalSearchInput').value.trim();
+                        if (!query) return;
+
+                        // Check shortcuts first even for Google button (Smart Nav)
+                        const lowerQuery = query.toLowerCase();
+                        if (APP_ROUTES[lowerQuery]) {
+                            window.location.href = APP_ROUTES[lowerQuery];
+                            return;
+                        }
+
+                        // Else, explicit Google Stock Search
+                        window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}+share+price`, '_blank');
+                    }
+                </script>
+
+                <style>
+                    .google-search-btn {
+                        position: absolute;
+                        right: 8px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        background: transparent;
+                        border: none;
+                        color: var(--text-muted);
+                        cursor: pointer;
+                        padding: 8px;
+                        border-radius: 50%;
+                        transition: all 0.2s;
+                    }
+
+                    .google-search-btn:hover {
+                        color: var(--accent-blue);
+                        background: rgba(37, 99, 235, 0.1);
+                    }
+                </style>
+
+                <div class="nav-right">
+                    <div class="nav-actions">
+                        <div style="position: relative;">
+                            <button class="nav-icon-btn" id="bellIcon">
+                                <i class="fa-solid fa-bell"></i>
+                                {% if upcoming_reminders %}
+                                <span class="notification-badge">{{ upcoming_reminders|length }}</span>
+                                {% endif %}
+                            </button>
+                            <div class="dropdown-groww-panel glass-panel" id="notificationMenu">
+                                <div class="profile-header"
+                                    style="border-bottom: 1px solid var(--border-light); padding-bottom: 8px; margin-bottom: 8px;">
+                                    <div class="user-name">Notifications</div>
+                                </div>
+                                {% if upcoming_reminders %}
+                                {% for reminder in upcoming_reminders %}
+                                <div class="reminder-item-nav">
+                                    <div class="reminder-dot"
+                                        style="background: {% if reminder.type == 'loan' %}#ef4444{% else %}#f59e0b{% endif %};">
+                                    </div>
+                                    <div class="reminder-content">
+                                        <div style="font-weight: 500; font-size: 0.85rem;">{{ reminder.title }}</div>
+                                        <div
+                                            style="font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+                                            <span>{{ reminder.date|date:"M d" }}</span>
+                                            <span style="font-weight: 600;">₹{{ reminder.amount|floatformat:0 }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% else %}
+                                <div
+                                    style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+                                    No new notifications</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                            <i class="fa-solid fa-moon"></i>
+                        </button>
+                        <div class="user-profile-container" style="position: relative;">
+                            <div class="user-profile" id="userProfileBtn" style="cursor: pointer;">
+                                <div class="avatar">{{ user.username.0|upper }}</div>
+                            </div>
+                            <div class="dropdown-groww-panel glass-panel" id="userDropdown">
+                                <div class="profile-header"
+                                    style="border-bottom: 1px solid var(--border-light); padding-bottom: 12px; margin-bottom: 8px;">
+                                    <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+                                    <div class="user-email" style="font-size: 0.75rem; color: var(--text-muted);">{{
+                                        user.email }}</div>
+                                </div>
+                                <a href="{% url 'document_list' %}" class="dropdown-item">
+                                    <i class="fa-solid fa-folder-open"></i> Document Vault
+                                </a>
+                                <a href="{% url 'about' %}" class="dropdown-item">
+                                    <i class="fa-solid fa-circle-info"></i> About FinTrack
+                                </a>
+                                <a href="{% url 'contact' %}" class="dropdown-item">
+                                    <i class="fa-solid fa-headset"></i> Contact Support
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fa-solid fa-user-gear"></i> Account Settings
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fa-solid fa-shield-halved"></i> Security
+                                </a>
+                                <div
+                                    style="border-top: 1px solid var(--border-light); margin: 8px 0; padding-top: 8px;">
+                                    <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item logout-btn"
+                                            style="width: 100%; border: none; background: none; font-family: inherit; cursor: pointer; text-align: left; color: var(--accent-coral);">
+                                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content-body">{% block content %}{% endblock %}</div>
+        </main>
+    </div>
+    <div id="toast-container" class="toast-container"></div>
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const sunIcon = '<i class="fa-solid fa-sun"></i>';
+        const moonIcon = '<i class="fa-solid fa-moon"></i>';
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.body.setAttribute('data-theme', savedTheme);
+        themeToggle.innerHTML = savedTheme === 'dark' ? sunIcon : moonIcon;
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeToggle.innerHTML = newTheme === 'dark' ? sunIcon : moonIcon;
+        });
+        const bellIcon = document.getElementById('bellIcon');
+        const notificationMenu = document.getElementById('notificationMenu');
+        bellIcon.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notificationMenu.classList.toggle('active');
+            userDropdown.classList.remove('active');
+        });
+        const userProfileBtn = document.getElementById('userProfileBtn');
+        const userDropdown = document.getElementById('userDropdown');
+        userProfileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userDropdown.classList.toggle('active');
+            notificationMenu.classList.remove('active');
+        });
+        document.addEventListener('click', (e) => {
+            if (!notificationMenu.contains(e.target) && e.target !== bellIcon) {
+                notificationMenu.classList.remove('active');
+            }
+            if (!userDropdown.contains(e.target) && !userProfileBtn.contains(e.target)) {
+                userDropdown.classList.remove('active');
+            }
+        });
+
+        // Mobile Menu Logic
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                mobileMenu.classList.toggle('active');
+                notificationMenu.classList.remove('active');
+                userDropdown.classList.remove('active');
+            });
+            document.addEventListener('click', (e) => {
+                if (!mobileMenu.contains(e.target) && e.target !== mobileMenuBtn) {
+                    mobileMenu.classList.remove('active');
+                }
+            });
+        }
+        window.createToast = function (message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast-item ${type}`;
+            const icon = type === 'success' ? 'fa-circle-check' : (type === 'error' ? 'fa-circle-xmark' : 'fa-circle-info');
+            toast.innerHTML = `
+                <div class="toast-icon"><i class="fa-solid ${icon}"></i></div>
+                <div class="toast-content">${message}</div>
+                <button class="toast-close"><i class="fa-solid fa-xmark"></i></button>
+                <div class="toast-progress"></div>
+            `;
+            container.appendChild(toast);
+            const closeBtn = toast.querySelector('.toast-close');
+            closeBtn.onclick = () => toast.remove();
+            setTimeout(() => { if (toast.parentNode) toast.remove(); }, 5000);
+        };
+        {% if messages %}
+        {% for message in messages %}
+        window.createToast("{{ message|escapejs }}", "{{ message.tags }}");
+        {% endfor %}
+        {% endif %}
+    </script>
+    <!-- FinBot Chatbot Widget -->
+    <div id="chatbot-float-btn" class="chatbot-float-btn">
+        <i class="fa-solid fa-robot"></i>
+    </div>
+
+    <div id="chatbot-window" class="chatbot-window">
+        <div class="chat-header">
+            <div class="chat-title">
+                <h3>FinBot</h3>
+                <span>AI Assistant</span>
+            </div>
+            <div id="chatbot-close-btn" class="chat-close-btn">
+                <i class="fa-solid fa-xmark"></i>
+            </div>
+        </div>
+        <div id="chatbot-messages" class="chat-messages">
+            <div class="chat-message bot">
+                Hi! I'm FinBot. Ask me about your expenses, savings, or net worth. 🤖
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatbot-input" class="chat-input" placeholder="Type a message...">
+            <button id="chatbot-send-btn" class="chat-send-btn">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="{% static 'js/chatbot.js' %}"></script>
+</body>
+
+</html>

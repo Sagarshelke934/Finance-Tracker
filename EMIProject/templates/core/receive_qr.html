@@ -1,0 +1,416 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div style="max-width: 480px; margin: 0 auto; padding-top: 24px; padding-bottom: 40px;">
+
+    <!-- Back Link -->
+    <a href="{% url 'home' %}"
+        style="display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); text-decoration: none; margin-bottom: 20px; font-size: 0.9rem; transition: color 0.2s;">
+        <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <!-- QR Tabs -->
+    <div class="qr-tabs-container animate-fade-in"
+        style="margin-bottom: 24px; background: var(--bg-card); padding: 6px; border-radius: 16px; border: 1px solid var(--border-light); display: flex;">
+        <button class="qr-tab-btn active" onclick="switchTab('scan')" id="tab-scan"
+            style="flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; background: transparent; color: var(--text-muted);">
+            <i class="fa-solid fa-camera" style="margin-right: 8px;"></i> Scan QR
+        </button>
+        <button class="qr-tab-btn" onclick="switchTab('receive')" id="tab-receive"
+            style="flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; background: transparent; color: var(--text-muted);">
+            <i class="fa-solid fa-qrcode" style="margin-right: 8px;"></i> My QR
+        </button>
+    </div>
+
+    <!-- Scan Content -->
+    <div id="content-scan" class="tab-content">
+        <div class="card-hub animate-fade-in" style="padding: 24px; text-align: center;">
+            <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">Scan any UPI
+                QR</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 24px;">Align the QR code within the
+                frame to pay</p>
+
+            <div id="reader"
+                style="width: 100%; border-radius: 16px; overflow: hidden; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            </div>
+
+            <!-- Scanning Overlay/Status -->
+            <div id="scan-status"
+                style="margin-top: 16px; font-size: 0.9rem; color: var(--accent-blue); font-weight: 500;">
+                <i class="fa-solid fa-circle-notch fa-spin"></i> Initializing Camera...
+            </div>
+        </div>
+
+        <!-- Result Card (Hidden by default) -->
+        <div id="scan-result" class="card-hub animate-fade-in"
+            style="display: none; margin-top: 24px; padding: 24px; border: 2px solid var(--accent-mint); background: rgba(16, 185, 129, 0.05);">
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                <div
+                    style="width: 48px; height: 48px; background: var(--accent-mint); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);" id="payee-name">Payee
+                        Name</div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);" id="payee-vpa">payee@vpa</div>
+                </div>
+            </div>
+
+            <div
+                style="background: var(--bg-card); padding: 16px; border-radius: 12px; border: 1px solid var(--border-light); margin-bottom: 20px;">
+                <div
+                    style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                    Amount Detected</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--text-main);" id="pay-amount">₹0.00</div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <a id="upi-deep-link" href="#" class="btn-primary-new"
+                    style="justify-content: center; text-decoration: none;">
+                    <i class="fa-solid fa-mobile-screen"></i> Pay Now
+                </a>
+                <a id="record-expense-link" href="#" class="btn-primary-new"
+                    style="background: var(--bg-body); color: var(--text-primary); border: 1px solid var(--border-light); justify-content: center; text-decoration: none;">
+                    <i class="fa-solid fa-receipt"></i> Record
+                </a>
+            </div>
+
+            <button onclick="resetScanner()"
+                style="width: 100%; margin-top: 12px; background: none; border: none; color: var(--text-muted); font-size: 0.85rem; cursor: pointer;">
+                Scan Another
+            </button>
+        </div>
+        <!-- Debug Console (Hidden initially) -->
+        <div id="debug-console"
+            style="display: none; margin-top: 16px; padding: 12px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; text-align: left;">
+            <div
+                style="font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">
+                Raw Scanned Data</div>
+            <div id="raw-scan-text"
+                style="font-family: monospace; font-size: 0.75rem; word-break: break-all; color: var(--text-primary);">
+            </div>
+        </div>
+
+        <!-- System Camera Fallback -->
+        <div style="margin-top: 20px; text-align: center;">
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">Scanner Lagging?</p>
+            <input type="file" id="qr-input-file" accept="image/*" capture="environment" hidden>
+            <button onclick="document.getElementById('qr-input-file').click()"
+                style="background: white; border: 1px solid var(--border-light); padding: 10px 20px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                <i class="fa-solid fa-camera-retro" style="color: var(--accent-blue);"></i> Use System Camera / Upload
+            </button>
+        </div>
+    </div>
+
+    <!-- Receive Content (Existing QR) -->
+    <div id="content-receive" class="tab-content" style="display: none;">
+        <div class="card-hub animate-fade-in"
+            style="text-align: center; padding: 40px 24px; position: relative; overflow: hidden;">
+            <div
+                style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, transparent 70%); pointer-events: none;">
+            </div>
+
+            <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">My Payment QR
+            </h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 32px;">Sharing helps people pay you
+                faster</p>
+
+            <div
+                style="background: white; padding: 16px; border-radius: 16px; display: inline-block; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3);">
+                <div id="qrcode"></div>
+            </div>
+
+            <div style="margin-top: 32px;">
+                <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-main);">{{ user.username|title }}
+                </div>
+                <div
+                    style="font-family: monospace; color: var(--text-muted); background: var(--bg-body); padding: 8px 16px; border-radius: 20px; display: inline-block; margin-top: 8px; border: 1px solid var(--border-light); font-size: 0.85rem;">
+                    {{ user.username }}@bank <i class="fa-regular fa-copy"
+                        style="margin-left: 8px; cursor: pointer; color: var(--accent-blue);"></i>
+                </div>
+            </div>
+
+            <button class="btn-primary-new" style="width: 100%; margin-top: 32px; justify-content: center;">
+                <i class="fa-solid fa-share-nodes"></i> Share My QR
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .qr-tab-btn.active {
+        background: var(--accent-blue) !important;
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    }
+
+    #reader__scan_region {
+        background: #000;
+    }
+
+    #reader__dashboard_section_csr button {
+        background: var(--accent-blue);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        margin: 10px 0;
+    }
+
+    #reader video {
+        border-radius: 12px;
+    }
+</style>
+
+<!-- Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<script>
+    // --- Existing QR Generation ---
+    const upiLink = "upi://pay?pa={{ user.username }}@bank&pn={{ user.username|title }}";
+    new QRCode(document.getElementById("qrcode"), {
+        text: upiLink,
+        width: 200,
+        height: 200,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+    });
+
+    // --- Tab Switching Logic ---
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        document.querySelectorAll('.qr-tab-btn').forEach(b => b.classList.remove('active'));
+
+        document.getElementById('content-' + tab).style.display = 'block';
+        document.getElementById('tab-' + tab).classList.add('active');
+
+        if (tab === 'scan') {
+            startScanner();
+        } else {
+            stopScanner();
+        }
+    }
+
+    // --- UPI Scanning Logic ---
+    let html5QrCode;
+
+    function startScanner() {
+        if (!html5QrCode) {
+            html5QrCode = new Html5Qrcode("reader", {
+                // Formats restriction removed for better compatibility
+                // formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+                experimentalFeatures: {
+                    useBarCodeDetectorIfSupported: true
+                },
+                verbose: true
+            });
+        }
+
+        const config = {
+            fps: 25,
+            aspectRatio: 1.0
+        };
+
+        // Use "user" facing mode for integrated cameras (laptops/webcams)
+        // "environment" is for rear cameras on phones.
+        html5QrCode.start(
+            { facingMode: "user" },
+            config,
+            onScanSuccess,
+            onScanFailure
+        ).then(() => {
+            document.getElementById('scan-status').innerHTML =
+                '<i class="fa-solid fa-viewfinder" style="color: var(--accent-mint);"></i> Scanner Active';
+            document.getElementById('scan-status').style.color = "var(--accent-mint)";
+        }).catch((err) => {
+            document.getElementById('scan-status').innerHTML =
+                '<i class="fa-solid fa-circle-exclamation" style="color: var(--accent-coral);"></i> Camera Error: ' + err;
+            document.getElementById('scan-status').style.color = "var(--accent-coral)";
+            console.error(err);
+        });
+
+        // Native Camera Fallback Listener
+        const fileInput = document.getElementById('qr-input-file');
+        fileInput.addEventListener('change', e => {
+            if (e.target.files.length == 0) {
+                return;
+            }
+            const imageFile = e.target.files[0];
+
+            // Helper to scan file
+            const scanImageFile = () => {
+                html5QrCode.scanFile(imageFile, true)
+                    .then(decodedText => {
+                        onScanSuccess(decodedText);
+                    })
+                    .catch(err => {
+                        console.error("Error scanning file", err);
+                        document.getElementById('scan-status').innerHTML =
+                            '<i class="fa-solid fa-circle-exclamation" style="color: var(--accent-coral);"></i> Could not read QR from image';
+                        document.getElementById('scan-status').style.color = "var(--accent-coral)";
+
+                        // Restart scanner if it was running? 
+                        // Probably better to leave it stopped so user sees error, 
+                        // or provide a "Retry Camera" button. 
+                        // For now, let's show a "Reset" button via existing UI or let them try again.
+                    });
+            };
+
+            // Vital: Stop scanning before scanning file to avoid conflicts
+            if (html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    scanImageFile();
+                }).catch(err => {
+                    console.error("Error stopping scanner", err);
+                    scanImageFile(); // Try anyway
+                });
+            } else {
+                scanImageFile();
+            }
+        });
+    }
+
+    function stopScanner() {
+        if (html5QrCode && html5QrCode.isScanning) {
+            html5QrCode.stop().catch(err => console.error("Error stopping scanner", err));
+        }
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+        console.log(`Code matched = ${decodedText}`, decodedResult);
+
+        const statusEl = document.getElementById('scan-status');
+        statusEl.innerHTML = '<i class="fa-solid fa-bolt" style="color: var(--accent-gold);"></i> QR Detected!';
+        statusEl.style.color = "var(--accent-gold)";
+
+        const debugArea = document.getElementById('debug-console');
+        if (debugArea) {
+            debugArea.style.display = 'block';
+            document.getElementById('raw-scan-text').innerText = decodedText;
+        }
+
+        const lowerText = decodedText.toLowerCase();
+
+        // Broader Check for UPI or URLs
+        if (
+            lowerText.includes("upi://") ||
+            lowerText.includes("intent://") ||
+            lowerText.includes("http") || // Allow HTTP links (might be phonepe redirects)
+            (lowerText.includes("pa=") && lowerText.includes("pn="))
+        ) {
+            let finalUri = decodedText;
+
+            // Normalize formats
+            if (lowerText.startsWith("intent://")) {
+                finalUri = "upi://" + decodedText.replace("intent://", "").split("#")[0];
+            }
+            else if (lowerText.startsWith("http")) {
+                if (lowerText.includes("?")) {
+                    finalUri = "upi://pay?" + decodedText.split('?')[1];
+                } else {
+                    finalUri = decodedText;
+                }
+            }
+            else if (!lowerText.startsWith("upi://")) {
+                finalUri = "upi://pay?" + decodedText;
+            }
+
+            setTimeout(() => {
+                stopScanner();
+                showResult(finalUri);
+            }, 300);
+        } else {
+            // Show WHAT was scanned so user knows
+            statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color: var(--accent-coral);"></i> Scanned: "${decodedText.substring(0, 15)}..." (Not recognized)`;
+            statusEl.style.color = "var(--accent-coral)";
+
+            setTimeout(() => {
+                if (html5QrCode && html5QrCode.isScanning) {
+                    statusEl.innerHTML = '<i class="fa-solid fa-viewfinder" style="color: var(--accent-mint);"></i> Scanner Active';
+                    statusEl.style.color = "var(--accent-mint)";
+                }
+            }, 3000);
+        }
+    }
+
+    function onScanFailure(error) {
+        // Just fail silently for normal scanning noise
+    }
+
+    function parseUPI(url) {
+        try {
+            // Support both upi://pay?params and upi://upi/pay?params (Navi)
+            const queryPart = url.includes('?') ? url.split('?')[1] : url.split(':').pop();
+            const params = new URLSearchParams(queryPart);
+
+            const getParam = (p) => params.get(p.toLowerCase()) || params.get(p.toUpperCase()) || '';
+
+            return {
+                vpa: getParam('pa') || 'Unknown VPA',
+                name: getParam('pn') || 'Merchant/User',
+                amount: getParam('am') || '0.00',
+                note: getParam('tn') || ''
+            };
+        } catch (e) {
+            console.error("UPI Parsing Error:", e);
+            return { vpa: 'Error Parsing', name: 'Unknown', amount: '0.00', note: '' };
+        }
+    }
+
+    function showResult(upiUri) {
+        const details = parseUPI(upiUri);
+
+        document.getElementById('content-scan').querySelector('.card-hub').style.display = 'none';
+        document.getElementById('scan-result').style.display = 'block';
+
+        document.getElementById('payee-name').innerText = details.name;
+        document.getElementById('payee-vpa').innerText = details.vpa;
+        document.getElementById('pay-amount').innerText = '₹' + details.amount;
+
+        document.getElementById('upi-deep-link').href = upiUri;
+
+        // Dynamic link to Record Expense
+        const recordUrl = "{% url 'expense_create' %}?title=" + encodeURIComponent("Payment to " + details.name) +
+            "&amount=" + details.amount +
+            "&category=Shopping"; // Default category
+        document.getElementById('record-expense-link').href = recordUrl;
+    }
+
+    function resetScanner() {
+        document.getElementById('scan-result').style.display = 'none';
+        document.getElementById('content-scan').querySelector('.card-hub').style.display = 'block';
+        startScanner();
+    }
+
+    // Start scanner on load if on scan tab
+    // Start scanner on load if on scan tab
+    document.addEventListener('DOMContentLoaded', () => {
+        const path = window.location.pathname;
+        if (path.includes('my-qr')) {
+            switchTab('receive');
+        } else {
+            // Default to scan for 'scan-qr' or 'receive-qr' (or maybe logic varies)
+            // Actually, 'receive-qr' URL might imply receiving, but let's see.
+            // If the path is strictly /scan-qr/, go to scan.
+            // If the path is /my-qr/, go to receive.
+            if (path.includes('scan-qr')) {
+                switchTab('scan');
+            } else if (path.includes('receive-qr')) {
+                // If generic URL, maybe default to My QR? 
+                // Previous code defaulted to 'scan'.
+                // Let's default to Scan as that is more common action?
+                // Or maybe the user expects 'Receiving' when visiting 'Receive QR'.
+                // The filename is receive_qr.html.
+                switchTab('scan');
+            } else {
+                switchTab('scan');
+            }
+        }
+    });
+</script>
+{% endblock %}

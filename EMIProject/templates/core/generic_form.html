@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ title }} | FinTrack{% endblock %}
+{% block extra_css %}
+<style>
+    .form-page-container {
+        padding: 60px 24px;
+        min-height: calc(100vh - 100px);
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        background: #fbfbfc;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .form-card {
+        background: white;
+        width: 100%;
+        max-width: 520px;
+        border-radius: 32px;
+        box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.08);
+        padding: 48px;
+        border: 1px solid #f0f0f0;
+        animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .form-header {
+        margin-bottom: 40px;
+        text-align: center;
+    }
+
+    .form-header h1 {
+        font-size: 2.4rem;
+        font-weight: 800;
+        color: #111;
+        letter-spacing: -1.5px;
+        margin: 0 0 8px 0;
+    }
+
+    .form-header p {
+        color: #666;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+        position: relative;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        margin-bottom: 10px;
+        padding-left: 4px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 16px 20px;
+        border-radius: 16px;
+        border: 1.5px solid #eee;
+        background: #fbfbfc;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #111;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #00d09c;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(0, 208, 156, 0.1);
+    }
+
+    .error-text {
+        color: #ef4444;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-top: 6px;
+        padding-left: 4px;
+    }
+
+    .form-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-top: 40px;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 18px;
+        border-radius: 18px;
+        border: none;
+        background: #00d09c;
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 10px 25px -5px rgba(0, 208, 156, 0.4);
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px -5px rgba(0, 208, 156, 0.5);
+    }
+
+    .btn-cancel {
+        width: 100%;
+        text-align: center;
+        padding: 16px;
+        color: #999;
+        text-decoration: none;
+        font-size: 0.95rem;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+
+    .btn-cancel:hover {
+        color: #111;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="form-page-container">
+    <div class="form-card">
+        <div class="form-header">
+            <h1>{{ title }}</h1>
+            <p>Update your information securely</p>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<div class="error-text">{{ field.errors.0 }}</div>{% endif %}
+            </div>
+            {% endfor %}
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Save Changes</button>
+                <a href="{% url 'home' %}" class="btn-cancel">Return to Dashboard</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

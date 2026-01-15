@@ -1,0 +1,315 @@
+/* Fintech Premium KPI Cards CSS - Light Theme Adapted */
+:root {
+    /* Adapted directly from modern_theme.css light mode variables */
+    --kpi-bg: #ffffff;
+    --kpi-surface: #f8fafc;
+    /* Slightly off-white for contrast if needed */
+    --kpi-border: #e2e8f0;
+    /* Light border */
+
+    --kpi-text-primary: #0f172a;
+    /* Slate 900 */
+    --kpi-text-secondary: #64748b;
+    /* Slate 500 */
+
+    /* Accents - Keeping vivid colors but adjusting glows for light mode */
+    --kpi-green: #10b981;
+    --kpi-green-glow: rgba(16, 185, 129, 0.15);
+
+    --kpi-blue: #3b82f6;
+    --kpi-blue-glow: rgba(59, 130, 246, 0.15);
+
+    --kpi-red: #ef4444;
+    --kpi-red-glow: rgba(239, 68, 68, 0.15);
+
+    --kpi-amber: #f59e0b;
+    --kpi-amber-glow: rgba(245, 158, 11, 0.15);
+
+    --kpi-purple: #8b5cf6;
+    --kpi-purple-glow: rgba(139, 92, 246, 0.15);
+
+    /* Shadows optimized for light mode depth */
+    --kpi-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+    --kpi-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+}
+
+.fintech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    padding: 0.5rem 0;
+    margin-bottom: 2rem;
+}
+
+.fintech-card {
+    background: var(--kpi-bg);
+    border: 1px solid var(--kpi-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--kpi-shadow-sm);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 140px;
+}
+
+/* Hover Effects */
+.fintech-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--kpi-shadow-hover);
+    border-color: rgba(0, 0, 0, 0.05);
+    /* Softer border on hover */
+}
+
+/* Accent Glow on Hover - Subtle colored shadow */
+.fintech-card.accent-green:hover {
+    box-shadow: 0 10px 25px -5px var(--kpi-green-glow);
+    border-color: var(--kpi-green);
+}
+
+.fintech-card.accent-blue:hover {
+    box-shadow: 0 10px 25px -5px var(--kpi-blue-glow);
+    border-color: var(--kpi-blue);
+}
+
+.fintech-card.accent-red:hover {
+    box-shadow: 0 10px 25px -5px var(--kpi-red-glow);
+    border-color: var(--kpi-red);
+}
+
+.fintech-card.accent-amber:hover {
+    box-shadow: 0 10px 25px -5px var(--kpi-amber-glow);
+    border-color: var(--kpi-amber);
+}
+
+.fintech-card.accent-purple:hover {
+    box-shadow: 0 10px 25px -5px var(--kpi-purple-glow);
+    border-color: var(--kpi-purple);
+}
+
+/* Card Content Structure */
+.kpi-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.kpi-icon-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+
+    /* Light theme icon box: colored bg with darker icon */
+    background: var(--icon-bg, #f1f5f9);
+    color: var(--icon-color, #64748b);
+
+    transition: all 0.3s ease;
+}
+
+.fintech-card:hover .kpi-icon-box {
+    transform: rotate(5deg) scale(1.05);
+}
+
+/* Specific Accent Colors for Icons */
+.accent-green {
+    --icon-bg: #ecfdf5;
+    --icon-color: var(--kpi-green);
+}
+
+.accent-blue {
+    --icon-bg: #eff6ff;
+    --icon-color: var(--kpi-blue);
+}
+
+.accent-red {
+    --icon-bg: #fef2f2;
+    --icon-color: var(--kpi-red);
+}
+
+.accent-amber {
+    --icon-bg: #fffbeb;
+    --icon-color: var(--kpi-amber);
+}
+
+.accent-purple {
+    --icon-bg: #f5f3ff;
+    --icon-color: var(--kpi-purple);
+}
+
+
+.kpi-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--kpi-text-secondary);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.kpi-amount {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.85rem;
+    font-weight: 700;
+    color: var(--kpi-text-primary);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+}
+
+.kpi-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: var(--kpi-text-secondary);
+    font-weight: 500;
+}
+
+.kpi-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+/* Trend Colors - Light Mode friendly */
+.kpi-trend.positive {
+    color: #059669;
+    background: #d1fae5;
+}
+
+.kpi-trend.negative {
+    color: #dc2626;
+    background: #fee2e2;
+}
+
+.kpi-trend.neutral {
+    color: #475569;
+    background: #f1f5f9;
+}
+
+/* Subtle Gradient Decoration in Corner (Optional, kept subtle) */
+.fintech-card::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, var(--glow-color, rgba(0, 0, 0, 0.02)) 0%, transparent 70%);
+    border-radius: 50%;
+    opacity: 0.6;
+    transition: all 0.5s ease;
+    pointer-events: none;
+}
+
+.fintech-card:hover::before {
+    top: -30px;
+    right: -30px;
+    opacity: 1;
+}
+
+.accent-green {
+    --glow-color: rgba(16, 185, 129, 0.2);
+}
+
+.accent-blue {
+    --glow-color: rgba(59, 130, 246, 0.2);
+}
+
+.accent-red {
+    --glow-color: rgba(239, 68, 68, 0.2);
+}
+
+.accent-amber {
+    --glow-color: rgba(245, 158, 11, 0.2);
+}
+
+.accent-purple {
+    --glow-color: rgba(139, 92, 246, 0.2);
+}
+
+/* Ripple Effect (Light Mode) */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.05);
+    /* Darker ripple for light bg */
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+    pointer-events: none;
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* Mini Cards (Benchmarks) */
+.fintech-card-mini {
+    background: var(--kpi-bg);
+    border: 1px solid var(--kpi-border);
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.2s;
+    box-shadow: var(--kpi-shadow-sm);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.fintech-card-mini:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--kpi-shadow-hover);
+    border-color: var(--kpi-blue);
+}
+
+/* Benchmark Status Badges */
+.bm-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+/* Contextual Colors */
+.bm-status.rising {
+    color: var(--kpi-red);
+}
+
+/* Default rising = warning/red */
+.bm-status.falling {
+    color: var(--kpi-green);
+}
+
+/* Default falling = good/green */
+.bm-status.stable {
+    color: var(--kpi-text-secondary);
+}
+
+.bm-status.info {
+    color: var(--kpi-blue);
+}
+
+/* Transaction List Styling override if needed */
+.transaction-item {
+    display: grid;
+    align-items: center;
+    gap: 12px;
+}

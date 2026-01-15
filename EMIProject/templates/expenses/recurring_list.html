@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Recurring Expenses | FinTrack{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Recurring Expenses</h1>
+        <p class="text-secondary">Manage your automated bills and subscriptions.</p>
+    </div>
+    <div>
+        <a href="{% url 'recurring_add' %}" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> New Automation
+        </a>
+    </div>
+</div>
+
+<div class="glass-panel" style="padding: var(--spacing-md);">
+    {% if recurring_expenses %}
+    <div style="overflow-x: auto;">
+        <table class="expenses-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Amount</th>
+                    <th>Category</th>
+                    <th>Frequency</th>
+                    <th>Status</th>
+                    <th>Last Auto-Pay</th>
+                    <th>Next Due</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for expense in recurring_expenses %}
+                <tr>
+                    <td><strong>{{ expense.title }}</strong></td>
+                    <td style="color: var(--accent-danger); font-weight: 600;">₹{{ expense.amount }}</td>
+                    <td><span class="category-pill">{{ expense.get_category_display }}</span></td>
+                    <td>{{ expense.get_frequency_display }}</td>
+                    <td>
+                        {% if expense.is_active %}
+                        <span style="color: var(--accent-success);"><i class="fa-solid fa-check-circle"></i>
+                            Active</span>
+                        {% else %}
+                        <span style="color: var(--text-secondary);"><i class="fa-solid fa-pause-circle"></i>
+                            Paused</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-secondary">{{ expense.last_processed_date|default:"Never" }}</td>
+                    <td class="text-secondary">
+                        <!-- Simple logic to show next due date roughly -->
+                        Auto
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <a href="{% url 'recurring_edit' expense.pk %}" class="btn-action"
+                                style="padding: 0.4rem; color: var(--accent-info);">
+                                <i class="fa-solid fa-pen"></i>
+                            </a>
+                            <a href="{% url 'recurring_delete' expense.pk %}" class="btn-action"
+                                style="padding: 0.4rem; color: var(--accent-danger);">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding: var(--spacing-xl);">
+        <i class="fa-solid fa-robot" style="font-size: 3rem; margin-bottom: 1rem; color: var(--text-secondary);"></i>
+        <p>No recurring expenses set up yet.</p>
+        <p style="font-size: 0.9rem;">Automate your rent, Netflix, or gym membership.</p>
+        <a href="{% url 'recurring_add' %}" class="btn btn-primary" style="margin-top: 1rem;">Setup Now</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

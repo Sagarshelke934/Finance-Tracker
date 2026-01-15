@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Confirm Delete - FinTrack{% endblock %}
+
+{% block content %}
+<div class="ledger-container" style="max-width: 600px; margin-top: 60px;">
+    <div class="card-hub animate-fade-in">
+        <div style="text-align: center; padding: 20px 0;">
+            <div
+                style="width: 80px; height: 80px; background: rgba(239, 68, 68, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto;">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size: 2.5rem; color: var(--accent-coral);"></i>
+            </div>
+
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 12px;">Delete Record?</h2>
+            <p style="color: var(--text-muted); margin-bottom: 32px; font-size: 1rem;">
+                Are you sure you want to delete <span style="font-weight: 600; color: var(--text-main);">"{{ object
+                    }}"</span>?
+                <br>This action cannot be undone.
+            </p>
+
+            <form method="post">
+                {% csrf_token %}
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <a href="javascript:history.back()" class="btn-new"
+                        style="background: var(--bg-body); color: var(--text-muted);">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn-new"
+                        style="background: var(--accent-coral); color: white; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
+                        <i class="fa-solid fa-trash"></i> Confirm Delete
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

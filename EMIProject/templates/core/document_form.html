@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+
+    <!-- Header -->
+    <div style="margin-bottom: 24px;">
+        <h1 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 8px;">{{ page_title }}</h1>
+        <p style="color: var(--text-muted);">Securely store your insurance policies, IDs, and agreements.</p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="card-hub">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Document Title</label>
+                <input type="text" name="title" class="form-control" placeholder="e.g. Life Insurance Policy" required
+                    style="width: 100%; padding: 10px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); background: var(--bg-body); color: var(--text-main);">
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Select File (PDF/Image)</label>
+                <input type="file" name="file" class="form-control" required
+                    style="width: 100%; padding: 10px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); background: var(--bg-body); color: var(--text-main);">
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Expiry Date (Optional)</label>
+                <input type="date" name="expiry_date" class="form-control"
+                    style="width: 100%; padding: 10px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); background: var(--bg-body); color: var(--text-main);">
+            </div>
+
+            <div style="display: flex; gap: 12px;">
+                <button type="submit" class="btn-primary-new" style="flex: 1; justify-content: center;">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> {{ button_text }}
+                </button>
+                <a href="{% url 'home' %}" class="btn-ghost" style="padding: 10px 20px; text-align: center;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

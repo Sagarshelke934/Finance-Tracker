@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Insurance - FinTrack{% endblock %}
+
+{% block content %}
+<div class="ledger-container">
+    <!-- Header -->
+    <div class="ledger-header">
+        <div class="ledger-title">
+            <h1 class="animate-fade-in">My Insurance</h1>
+            <div class="ledger-subtitle animate-fade-in animate-delay-1">Protection coverage and premium tracking</div>
+        </div>
+        <a href="{% url 'add_policy' %}" class="btn-add-tx animate-fade-in animate-delay-2">
+            <i class="fa-solid fa-plus"></i> Add Policy
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="ledger-stats-row animate-fade-in animate-delay-2">
+        <div class="stat-card-ledger">
+            <div class="stat-label">CURRENT COVER</div>
+            <div class="stat-val">₹{{ policy_total|default:"0"|floatformat:0 }}</div>
+        </div>
+        <div class="stat-card-ledger">
+            <div class="stat-label">IDEAL COVER</div>
+            <div class="stat-val">₹{{ ideal_coverage|floatformat:0 }}</div>
+        </div>
+        <div class="stat-card-ledger">
+            <div class="stat-label">COVERAGE GAP</div>
+            {% with gap=ideal_coverage|add:"-"|add:policy_total %}
+            <div class="stat-val"
+                style="color: {% if gap > 0 %}var(--accent-coral){% else %}var(--accent-mint){% endif %};">
+                ₹{{ gap|floatformat:0 }}
+            </div>
+            {% endwith %}
+        </div>
+        <div class="stat-card-ledger">
+            <div class="stat-label">MARKET BENCHMARK</div>
+            <div class="stat-val" style="font-size: 1rem;">{{market_insurance.term_insurance.ideal_coverage_multiplier}}
+                x Income</div>
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="card-hub animate-fade-in animate-delay-3" style="padding: 0; overflow: hidden; margin-top: 25px;">
+        <!-- NOTE: Since Policy model is not fully implemented in views for listing yet, showing placeholder derived from total -->
+        <table class="ledger-table">
+            <thead>
+                <tr>
+                    <th>POLICY NAME</th>
+                    <th>TYPE</th>
+                    <th>SUM ASSURED</th>
+                    <th>PREMIUM</th>
+                    <th>NEXT DUE</th>
+                    <th>ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for policy in policies %}
+                <tr>
+                    <td>
+                        <div class="tx-info">
+                            <div class="tx-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <div>
+                                <div class="tx-name">{{ policy.name }}</div>
+                                <div class="tx-date">{{ policy.get_type_display }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="category-tag">{{ policy.get_type_display }}</span></td>
+                    <td class="tx-amount">₹{{ policy.sum_assured|floatformat:0 }}</td>
+                    <td style="color: var(--text-muted);">₹{{ policy.premium|floatformat:0 }}</td>
+                    <td style="color: var(--text-muted);">{{ policy.premium_date|date:"M d, Y" }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'update_policy' policy.pk %}" class="btn-icon-action edit"><i
+                                    class="fa-solid fa-pen"></i></a>
+                            <a href="{% url 'delete_policy' policy.pk %}" class="btn-icon-action delete"><i
+                                    class="fa-solid fa-trash"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-state-cell">
+                        <i class="fa-solid fa-umbrella-beach"></i>
+                        <p>No policies linked. Ensure your family is protected.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

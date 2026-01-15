@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Investment - FinTrack{% endblock %}
+
+{% block content %}
+<div class="ledger-container" style="max-width: 600px;">
+    <!-- Header -->
+    <div class="ledger-header"
+        style="justify-content: center; text-align: center; flex-direction: column; align-items: center;">
+        <div class="ledger-title">
+            <h1 class="animate-fade-in"><i class="fa-solid fa-chart-line animate-float"
+                    style="color: var(--accent-blue);"></i> Manage Asset</h1>
+            <div class="ledger-subtitle animate-fade-in animate-delay-1">Grow your wealth portfolio</div>
+        </div>
+    </div>
+
+    <div class="card-hub animate-fade-in animate-delay-2" style="padding: 32px; margin-top: 20px;">
+        <form method="post" style="display: grid; gap: 24px;">
+            {% csrf_token %}
+
+            {% for field in form %}
+            <div class="form-group">
+                <div style="font-weight: 600; margin-bottom: 8px; color: var(--text-secondary);">
+                    {{ field.label_tag }}
+                </div>
+                {{ field }}
+                {% if field.errors %}
+                <div style="color: var(--accent-coral); font-size: 0.8rem; margin-top: 4px;">{{ field.errors.0 }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div style="display: flex; gap: 12px; margin-top: 10px;">
+                <a href="{% url 'investment_list' %}" class="btn-ghost"
+                    style="flex: 1; justify-content: center;">Cancel</a>
+                <button type="submit" class="btn-primary-new" style="flex: 1; justify-content: center;">Save
+                    Investment</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

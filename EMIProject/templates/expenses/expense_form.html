@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ page_title }} | FinTrack{% endblock %}
+{% block extra_css %}
+<style>
+    .form-page-container {
+        padding: 60px 24px;
+        min-height: calc(100vh - 100px);
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        background: #fbfbfc;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .form-card {
+        background: white;
+        width: 100%;
+        max-width: 520px;
+        border-radius: 32px;
+        box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.08);
+        padding: 48px;
+        border: 1px solid #f0f0f0;
+        animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .form-header {
+        margin-bottom: 40px;
+        text-align: center;
+    }
+
+    .form-header h1 {
+        font-size: 2.4rem;
+        font-weight: 800;
+        color: #111;
+        letter-spacing: -1.5px;
+        margin: 0 0 8px 0;
+    }
+
+    .form-header p {
+        color: #666;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    .form-group {
+        margin-bottom: 28px;
+        position: relative;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        margin-bottom: 10px;
+        padding-left: 4px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 16px 20px;
+        border-radius: 16px;
+        border: 1.5px solid #eee;
+        background: #fbfbfc;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #111;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #00d09c;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(0, 208, 156, 0.1);
+    }
+
+    .form-control::placeholder {
+        color: #ccc;
+        font-weight: 400;
+    }
+
+    .error-text {
+        color: #ef4444;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-top: 6px;
+        padding-left: 4px;
+    }
+
+    .form-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-top: 40px;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 18px;
+        border-radius: 18px;
+        border: none;
+        background: #00d09c;
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 10px 25px -5px rgba(0, 208, 156, 0.4);
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px -5px rgba(0, 208, 156, 0.5);
+    }
+
+    .btn-submit:active {
+        transform: translateY(0);
+    }
+
+    .btn-cancel {
+        width: 100%;
+        text-align: center;
+        padding: 16px;
+        color: #999;
+        text-decoration: none;
+        font-size: 0.95rem;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+
+    .btn-cancel:hover {
+        color: #111;
+    }
+
+    select.form-control {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23999' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 20px center;
+        background-size: 16px;
+        padding-right: 48px;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="form-page-container">
+    <div class="form-card">
+        <div class="form-header">
+            <h1>{{ page_title }}</h1>
+            <p>Enter the details of your transaction below</p>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Expense Name</label>
+                {{ form.title }}
+                {% if form.title.errors %}<div class="error-text">{{ form.title.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Amount (₹)</label>
+                {{ form.amount }}
+                {% if form.amount.errors %}<div class="error-text">{{ form.amount.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                {{ form.category }}
+                {% if form.category.errors %}<div class="error-text">{{ form.category.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Transaction Date</label>
+                {{ form.date }}
+                {% if form.date.errors %}<div class="error-text">{{ form.date.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">{{ button_text }}</button>
+                <a href="{% url 'expense_list' %}" class="btn-cancel">Back to Ledger</a>
+            </div>
+            <datalist id="expense-titles">
+                {% for title in suggested_titles %}
+                <option value="{{ title }}">
+                    {% endfor %}
+            </datalist>
+        </form>
+    </div>
+</div>
+{% endblock %}

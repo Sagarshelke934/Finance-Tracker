@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="header-glass">
+    <div class="page-title">
+        <h1>Search Results</h1>
+        <div style="font-size: 0.9rem; color: var(--text-muted);">
+            {% if query %}
+            Results for "<span style="color: var(--text-main); font-weight: 600;">{{ query }}</span>"
+            {% else %}
+            Please enter a search term
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 32px;">
+
+    <!-- Expenses Section -->
+    <div class="card-hub animate-fade-in animate-delay-1">
+        <h3 class="card-title" style="margin-bottom: 16px;">Matching Transactions</h3>
+        {% if expenses %}
+        <table class="table-hub">
+            <tbody>
+                {% for expense in expenses %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <div class="icon-box-sm">
+                                <i class="fa-solid fa-receipt"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-main);">{{
+                                    expense.title }}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">{{
+                                    expense.get_category_display }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="text-align: right;">
+                        <div style="font-weight: 700; color: var(--text-main); font-size: 0.95rem;">-₹{{
+                            expense.amount|floatformat:0 }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">{{ expense.date|date:"d M" }}</div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 0.9rem;">
+            No transactions found matching "{{ query }}"
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Documents Section -->
+    <div class="card-hub animate-fade-in animate-delay-2">
+        <h3 class="card-title" style="margin-bottom: 16px;">Matching Documents</h3>
+        {% if documents %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
+            {% for doc in documents %}
+            <a href="{{ doc.file.url }}" target="_blank"
+                style="display: flex; align-items: center; gap: 12px; padding: 16px; border: 1px solid var(--border-light); border-radius: 12px; text-decoration: none; transition: background 0.2s;">
+                <div
+                    style="width: 40px; height: 40px; border-radius: 8px; background: rgba(37, 99, 235, 0.1); color: var(--accent-blue); display: flex; align-items: center; justify-content: center;">
+                    <i class="fa-solid fa-file-contract"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 500; font-size: 0.9rem; color: var(--text-main);">{{ doc.title }}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Click to view</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 0.9rem;">
+            No documents found matching "{{ query }}"
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

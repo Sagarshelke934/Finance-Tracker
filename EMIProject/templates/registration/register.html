@@ -1,0 +1,224 @@
+{% extends 'auth_base.html' %}
+
+{% block title %}Sign Up - FinTrack{% endblock %}
+
+{% block content %}
+<style>
+    .auth-card {
+        display: flex;
+        background: var(--bg-card);
+        border-radius: 24px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 900px;
+        overflow: hidden;
+        min-height: 650px;
+    }
+
+    .auth-brand-signup {
+        flex: 1;
+        background: #000;
+        position: relative;
+        color: white;
+        padding: 48px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }
+
+    .auth-brand-signup::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('https://images.unsplash.com/photo-1611974765270-ca12586343bb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1500&q=80') center/cover;
+        opacity: 0.6;
+    }
+
+    .brand-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .auth-form-container {
+        flex: 1.2;
+        padding: 48px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: var(--bg-card);
+        overflow-y: auto;
+    }
+
+    /* Custom Input Styling to override Django defaults if classes aren't set */
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        color: var(--text-main);
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 14px;
+        background: #f8fafc;
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.2s;
+        box-sizing: border-box;
+        /* Critical for padding */
+    }
+
+    .form-group input:focus {
+        background: white;
+        border-color: var(--accent-blue);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        outline: none;
+    }
+
+    .form-group ul.errorlist {
+        color: var(--accent-coral);
+        font-size: 0.85rem;
+        list-style: none;
+        padding: 0;
+        margin-top: 5px;
+    }
+
+    .password-strength-bar {
+        height: 4px;
+        background: #e2e8f0;
+        margin-top: 8px;
+        border-radius: 2px;
+        overflow: hidden;
+    }
+
+    .password-strength-fill {
+        height: 100%;
+        width: 0%;
+        background: var(--accent-coral);
+        transition: all 0.3s;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 16px;
+        border-radius: 12px;
+        background: var(--primary-900);
+        color: white;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: all 0.2s;
+        margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (max-width: 768px) {
+        .auth-card {
+            flex-direction: column;
+            max-width: 400px;
+        }
+
+        .auth-brand-signup {
+            display: none;
+        }
+    }
+</style>
+
+<div class="auth-card animate-fade-in">
+    <!-- Right Form Section (Placed First in DOM for focus but visually adjusted if needed, here keeping structure simple) -->
+    <!-- Brand on Left -->
+    <div class="auth-brand-signup">
+        <div class="brand-content">
+            <h2 style="font-size: 2.5rem; margin-bottom: 20px;">Invest in<br>your future.</h2>
+            <p style="font-size: 1.1rem; opacity: 0.9;">
+                "The best time to plant a tree was 20 years ago. The second best time is now."
+            </p>
+        </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="auth-form-container">
+        <div style="margin-bottom: 32px;">
+            <h2 style="font-size: 2rem; margin-bottom: 8px;">Create Account</h2>
+            <p style="color: var(--text-muted);">Start your free 30-day trial. No credit card required.</p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <!-- Manual looping to apply accessible styling -->
+            {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">{{ field.help_text }}</p>
+                {% endif %}
+                {{ field.errors }}
+
+                <!-- Add strength meter specifically for password fields -->
+                {% if 'password' in field.name %}
+                <div class="password-strength-bar">
+                    <div class="password-strength-fill" id="strength-{{ field.name }}"></div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div style="margin-bottom: 24px;">
+                <label
+                    style="display: flex; gap: 10px; align-items: flex-start; font-size: 0.9rem; color: var(--text-muted);">
+                    <input type="checkbox" required style="margin-top: 3px;">
+                    <span>I agree to the <a href="#" style="color: var(--accent-blue);">Terms of Service</a> and <a
+                            href="#" style="color: var(--accent-blue);">Privacy Policy</a>.</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn-submit">Create Account</button>
+        </form>
+
+        <p style="margin-top: 24px; text-align: center; color: var(--text-muted); font-size: 0.95rem;">
+            Already have an account? <a href="{% url 'login' %}"
+                style="color: var(--primary-900); font-weight: 700;">Log in</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    // Simple Password Strength Logic
+    document.querySelectorAll('input[type="password"]').forEach(input => {
+        input.addEventListener('input', function () {
+            const val = this.value;
+            const bar = this.parentElement.querySelector('.password-strength-fill');
+            if (!bar) return;
+
+            let strength = 0;
+            if (val.length > 5) strength += 20;
+            if (val.length > 8) strength += 20;
+            if (/[A-Z]/.test(val)) strength += 20;
+            if (/[0-9]/.test(val)) strength += 20;
+            if (/[^A-Za-z0-9]/.test(val)) strength += 20;
+
+            bar.style.width = strength + '%';
+
+            if (strength < 40) bar.style.background = 'var(--accent-coral)';
+            else if (strength < 80) bar.style.background = 'var(--accent-gold)';
+            else bar.style.background = 'var(--accent-mint)';
+        });
+    });
+</script>
+{% endblock %}

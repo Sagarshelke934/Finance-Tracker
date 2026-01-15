@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="header-glass">
+    <div class="page-title">
+        <h1>About FinTrack</h1>
+    </div>
+</div>
+
+<div class="card-hub animate-fade-in" style="max-width: 1000px; margin: 0 auto; line-height: 1.7;">
+
+    <!-- Intro -->
+    <div style="text-align: center; margin-bottom: 48px;">
+        <h2 style="font-size: 1.8rem; margin-bottom: 12px;">Empowering Your Financial Future</h2>
+        <p style="color: var(--text-muted); max-width: 720px; margin: 0 auto;">
+            FinTrack is a smart personal finance platform designed to help individuals track expenses,
+            manage loans, calculate EMIs, and gain clarity over their financial journey.
+            Our goal is to simplify money management using modern technology and intuitive design.
+        </p>
+    </div>
+
+    <!-- Features -->
+    <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; margin-bottom: 56px;">
+        <div class="feature-card">
+            <i class="fa-solid fa-wallet"></i>
+            <h4>Expense Tracking</h4>
+            <p>Track every rupee with precision and clarity.</p>
+        </div>
+        <div class="feature-card">
+            <i class="fa-solid fa-calculator"></i>
+            <h4>Loan & EMI Tools</h4>
+            <p>Plan your loans with accurate EMI calculations.</p>
+        </div>
+        <div class="feature-card">
+            <i class="fa-solid fa-chart-line"></i>
+            <h4>Financial Insights</h4>
+            <p>Visualize spending and growth using analytics.</p>
+        </div>
+        <div class="feature-card">
+            <i class="fa-solid fa-shield-halved"></i>
+            <h4>Secure & Reliable</h4>
+            <p>Your data is protected with best practices.</p>
+        </div>
+    </div>
+
+    <!-- Team -->
+    <h3 style="text-align: center; margin-bottom: 28px; font-size: 1.6rem;">Our Team</h3>
+
+    <div class="team-grid">
+        <!-- Team Lead -->
+        <div class="team-card">
+            <img src="{% static 'images/team-lead.jpg' %}" class="team-photo" alt="Team Lead">
+            <h4>Sagar Shelke</h4>
+            <h5>Team Lead</h5>
+            <span>Full Stack Developer</span>
+        </div>
+
+        <!-- Design Lead -->
+        <div class="team-card">
+            <img src="{% static 'images/design-lead.jpg' %}" class="team-photo" alt="Design Lead">
+            <h4>Rushikesh Sahane</h4>
+            <h5>Design Lead</h5>
+            <span>UI/UX & Visual Design</span>
+        </div>
+
+        <!-- Development Lead -->
+        <div class="team-card">
+            <img src="{% static 'images/dev-lead.jpg' %}" class="team-photo" alt="Development Lead">
+            <h4>Aryan Supekar</h4>
+            <h5>Development Lead</h5>
+            <span>Backend & Integration</span>
+        </div>
+
+        <!-- Documentation Lead -->
+        <div class="team-card">
+            <img src="{% static 'images/member1.jpg' %}" class="team-photo" alt="Documentation Lead">
+            <h4>Kunal Thakre</h4>
+            <h5>Member</h5>
+            <span>Reports & Research</span>
+        </div>
+
+        <!-- Member -->
+        <div class="team-card">
+            <img src="{% static 'images/member.jpg' %}" class="team-photo" alt="Team Member">
+            <h4>Aniket Shirude</h4>
+            <h5>Member</h5>
+            <span>Support & Testing</span>
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: center; gap: 16px; margin-top: 48px;">
+        <a href="{% url 'contact' %}" class="btn-primary-new">Contact Us</a>
+        <a href="{% url 'home' %}" class="btn-ghost" style="border: 1px solid var(--border-light);">
+            Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<style>
+    .feature-card {
+        background: var(--bg-body);
+        border: 1px solid var(--border-light);
+        border-radius: 16px;
+        padding: 24px;
+        text-align: center;
+    }
+
+    .feature-card i {
+        font-size: 1.6rem;
+        color: var(--accent-blue);
+        margin-bottom: 10px;
+    }
+
+    .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 24px;
+    }
+
+    .team-card {
+        background: var(--bg-body);
+        border: 1px solid var(--border-light);
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .team-card h4 {
+        margin: 8px 0 4px;
+    }
+
+    .team-card span {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .team-avatar {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 12px;
+        border-radius: 50%;
+        background: var(--accent-blue-subtle);
+        color: var(--accent-blue);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1rem;
+    }
+
+    .team-photo {
+        width: 72px;
+        height: 72px;
+        margin: 0 auto 12px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--accent-blue);
+    }
+</style>
+{% endblock %}

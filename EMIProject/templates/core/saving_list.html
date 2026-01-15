@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Savings - FinTrack{% endblock %}
+
+{% block content %}
+<div class="ledger-container">
+    <!-- Header -->
+    <div class="ledger-header">
+        <div class="ledger-title">
+            <h1 class="animate-fade-in">My Savings</h1>
+            <div class="ledger-subtitle animate-fade-in animate-delay-1">Your liquidity and emergency funds</div>
+        </div>
+        <a href="{% url 'add_saving' %}" class="btn-add-tx animate-fade-in animate-delay-2">
+            <i class="fa-solid fa-plus"></i> Add Saving
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="ledger-stats-row animate-fade-in animate-delay-2">
+        <div class="stat-card-ledger">
+            <div class="stat-label">TOTAL SAVINGS</div>
+            <div class="stat-val">₹{{ total_savings|floatformat:0 }}</div>
+        </div>
+        <div class="stat-card-ledger">
+            <div class="stat-label">ENTRIES</div>
+            <div class="stat-val">{{ savings|length }}</div>
+        </div>
+        <div class="stat-card-ledger">
+            <div class="stat-label">LAST UPDATE</div>
+            <div class="stat-val" style="font-size: 1rem;">{{ savings.0.date|date:"M d"|default:"-" }}</div>
+        </div>
+        <div class="stat-card-ledger">
+            <div class="stat-label">STATUS</div>
+            <div class="stat-val" style="color: var(--accent-mint);">Healthy</div>
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="card-hub animate-fade-in animate-delay-3" style="padding: 0; overflow: hidden; margin-top: 25px;">
+        <table class="ledger-table">
+            <thead>
+                <tr>
+                    <th>SAVING NAME</th>
+                    <th>AMOUNT</th>
+                    <th>DATE CREATED</th>
+                    <th>ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for saving in savings %}
+                <tr>
+                    <td>
+                        <div class="tx-info">
+                            <div class="tx-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                                <i class="fa-solid fa-piggy-bank"></i>
+                            </div>
+                            <div>
+                                <div class="tx-name">{{ saving.name }}</div>
+                                <div class="tx-date">Bank / Cash</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="tx-amount" style="color: var(--accent-mint);">₹{{ saving.amount|floatformat:0 }}</td>
+                    <td style="color: var(--text-muted); font-weight: 500;">{{ saving.date|date:"M d, Y" }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'update_saving' saving.pk %}" class="btn-icon-action edit"><i
+                                    class="fa-solid fa-pen"></i></a>
+                            <a href="{% url 'delete_saving' saving.pk %}" class="btn-icon-action delete"><i
+                                    class="fa-solid fa-trash"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="empty-state-cell">
+                        <i class="fa-solid fa-cloud-sun"></i>
+                        <p>No savings recorded. Start building your nest egg!</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

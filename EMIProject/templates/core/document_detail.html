@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ doc.title }} - Preview{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto; padding: 20px;">
+    <!-- Header with Actions -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <div>
+            <a href="{% url 'document_list' %}"
+                style="text-decoration: none; color: var(--text-muted); font-size: 0.9rem;">
+                <i class="fa-solid fa-arrow-left"></i> Back to Vault
+            </a>
+            <h1 style="margin: 8px 0 0 0; font-size: 1.5rem; font-weight: 700;">{{ doc.title }}</h1>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <a href="{% url 'home' %}" class="btn-ghost">
+                <i class="fa-solid fa-table-columns"></i> Dashboard
+            </a>
+            <a href="{{ doc.file.url }}" download class="btn-primary-new">
+                <i class="fa-solid fa-download"></i> Download
+            </a>
+        </div>
+    </div>
+
+    <!-- Document Viewer -->
+    <div class="card-hub"
+        style="padding: 0; overflow: hidden; min-height: 600px; display: flex; align-items: center; justify-content: center; background: #e5e7eb;">
+        {% if doc.is_image %}
+        <img src="{{ doc.file.url }}" alt="{{ doc.title }}"
+            style="max-width: 100%; max-height: 80vh; object-fit: contain;">
+        {% elif doc.is_pdf %}
+        <iframe src="{{ doc.file.url }}" style="width: 100%; height: 80vh; border: none;"></iframe>
+        {% else %}
+        <div style="text-align: center; padding: 40px;">
+            <i class="fa-solid fa-file-circle-question"
+                style="font-size: 3rem; color: var(--text-muted); margin-bottom: 16px;"></i>
+            <p>Preview not available for this file type.</p>
+            <a href="{{ doc.file.url }}" class="btn-ghost" style="margin-top: 16px;">Download to View</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

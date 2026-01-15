@@ -1,0 +1,232 @@
+{% extends 'auth_base.html' %}
+
+{% block title %}Login - FinTrack{% endblock %}
+
+{% block content %}
+<style>
+    .auth-card {
+        display: flex;
+        background: var(--bg-card);
+        border-radius: 24px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+        /* Deep soft shadow */
+        width: 100%;
+        max-width: 900px;
+        overflow: hidden;
+        min-height: 600px;
+    }
+
+    .auth-brand {
+        flex: 1;
+        background: linear-gradient(135deg, var(--primary-900) 0%, var(--primary-800) 100%);
+        color: white;
+        padding: 48px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+    }
+
+    .auth-brand::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('https://img.freepik.com/free-vector/gradient-network-connection-background_23-2148879890.jpg?w=1380&t=st=1686762412~exp=1686763012~hmac=a4b0d0c0c0c0c0c0c0c0c0c0c0c0c0c0') center/cover;
+        opacity: 0.1;
+        mix-blend-mode: overlay;
+    }
+
+    .auth-form-container {
+        flex: 1.2;
+        padding: 48px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: var(--bg-card);
+    }
+
+    .social-btn {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        background: white;
+        color: var(--text-main);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 12px;
+    }
+
+    .social-btn:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+    }
+
+    .input-group {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    .input-field {
+        width: 100%;
+        padding: 16px;
+        background: #f8fafc;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.2s;
+    }
+
+    .input-field:focus {
+        background: white;
+        border-color: var(--accent-blue);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+        outline: none;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        cursor: pointer;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 16px;
+        border-radius: 12px;
+        background: var(--primary-900);
+        color: white;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: all 0.2s;
+        margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .auth-card {
+            flex-direction: column;
+            max-width: 400px;
+        }
+
+        .auth-brand {
+            display: none;
+            /* Hide brand panel on mobile for simplicity */
+        }
+    }
+</style>
+
+<div class="auth-card animate-fade-in">
+    <!-- Left Side: Brand -->
+    <div class="auth-brand">
+        <div style="z-index: 2;">
+            <div
+                style="display: flex; align-items: center; gap: 10px; font-size: 1.5rem; font-weight: 800; margin-bottom: 2rem;">
+                <i class="fa-solid fa-chart-line" style="color: var(--accent-blue);"></i>
+                FinTrack
+            </div>
+            <h1 style="font-size: 2.5rem; line-height: 1.2; margin-bottom: 1rem;">
+                Master your<br>money with<br><span style="color: var(--accent-blue);">clarity.</span>
+            </h1>
+            <p style="opacity: 0.7; font-size: 1.1rem; line-height: 1.6;">
+                Join 10,000+ users tracking expenses, investments, and net worth in one unified dashboard.
+            </p>
+        </div>
+
+        <div style="z-index: 2;">
+            <div style="display: flex; gap: -10px; margin-bottom: 10px;">
+                <!-- Mock Avatars (using CSS circles for now) -->
+                <div
+                    style="width:40px; height:40px; border-radius:50%; background:#e2e8f0; border:2px solid var(--primary-900); display:flex; align-items:center; justify-content:center; font-size:0.8rem; color:#64748b; font-weight:bold;">
+                    JD</div>
+                <div
+                    style="width:40px; height:40px; border-radius:50%; background:#e2e8f0; border:2px solid var(--primary-900); margin-left:-10px; display:flex; align-items:center; justify-content:center; font-size:0.8rem; color:#64748b; font-weight:bold;">
+                    AS</div>
+                <div
+                    style="width:40px; height:40px; border-radius:50%; background:#e2e8f0; border:2px solid var(--primary-900); margin-left:-10px; display:flex; align-items:center; justify-content:center; font-size:0.8rem; color:#64748b; font-weight:bold;">
+                    MR</div>
+            </div>
+            <p style="font-size: 0.9rem; opacity: 0.6;">Trusted by smart investors</p>
+        </div>
+    </div>
+
+    <!-- Right Side: Form -->
+    <div class="auth-form-container">
+        <div style="margin-bottom: 32px;">
+            <h2 style="font-size: 2rem; margin-bottom: 8px;">Welcome back</h2>
+            <p style="color: var(--text-muted);">Please enter your details to sign in.</p>
+        </div>
+
+        <!-- Social Login Mockups -->
+        <div style="display: flex; gap: 10px; margin-bottom: 24px;">
+            <button class="social-btn">
+                <i class="fa-brands fa-google"></i> Google
+            </button>
+            <button class="social-btn">
+                <i class="fa-brands fa-apple"></i> Apple
+            </button>
+        </div>
+
+        <div
+            style="display: flex; align-items: center; gap: 10px; margin-bottom: 24px; color: var(--text-muted); font-size: 0.9rem;">
+            <div style="flex:1; height:1px; background: var(--border-light);"></div>
+            <span>OR</span>
+            <div style="flex:1; height:1px; background: var(--border-light);"></div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            {% if form.errors %}
+            <div class="alert-card critical" style="padding: 12px; margin-bottom: 20px;">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>Invalid credentials. Please try again.</span>
+            </div>
+            {% endif %}
+
+            <div class="input-group">
+                <input type="text" name="username" class="input-field" placeholder="Username" required id="id_username">
+            </div>
+
+            <div class="input-group">
+                <input type="password" name="password" class="input-field" placeholder="Password" required
+                    id="id_password">
+                <i class="fa-solid fa-eye password-toggle" id="toggleLoginPass"
+                    onclick="togglePassword('id_password', 'toggleLoginPass')"></i>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <label
+                    style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; color: var(--text-muted);">
+                    <input type="checkbox" style="accent-color: var(--primary-900);"> Remember me
+                </label>
+                <a href="#" style="font-size: 0.9rem; color: var(--accent-blue); font-weight: 500;">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn-submit">Sign in</button>
+        </form>
+
+        <p style="margin-top: 24px; text-align: center; color: var(--text-muted); font-size: 0.95rem;">
+            Don't have an account? <a href="{% url 'register' %}"
+                style="color: var(--primary-900); font-weight: 700;">Sign up for free</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

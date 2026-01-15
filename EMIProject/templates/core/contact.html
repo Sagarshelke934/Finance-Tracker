@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="header-glass">
+    <div class="page-title">
+        <h1>Contact Us</h1>
+    </div>
+</div>
+
+<div class="card-hub animate-fade-in" style="max-width: 600px; margin: 0 auto;">
+    <p style="color: var(--text-muted); margin-bottom: 24px;">
+        Have questions or feedback? We'd love to hear from you.
+    </p>
+
+    <form style="display: flex; flex-direction: column; gap: 16px;">
+        <div>
+            <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem;">Name</label>
+            <input type="text" class="search-input"
+                style="background: var(--bg-body); padding: 12px; border: 1px solid var(--border-light); border-radius: 8px;"
+                placeholder="Your Name">
+        </div>
+
+        <div>
+            <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem;">Email</label>
+            <input type="email" class="search-input"
+                style="background: var(--bg-body); padding: 12px; border: 1px solid var(--border-light); border-radius: 8px;"
+                placeholder="you@example.com">
+        </div>
+
+        <div>
+            <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem;">Message</label>
+            <textarea class="search-input" rows="5"
+                style="background: var(--bg-body); padding: 12px; border: 1px solid var(--border-light); border-radius: 8px; width: 100%; resize: vertical;"
+                placeholder="How can we help?"></textarea>
+        </div>
+
+        <button type="button" class="btn-primary-new" style="justify-content: center; margin-top: 8px;">
+            Send Message
+        </button>
+    </form>
+</div>
+{% endblock %}

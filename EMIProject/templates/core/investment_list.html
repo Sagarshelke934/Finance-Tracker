@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Investments - FinTrack{% endblock %}
+
+{% block content %}
+<div class="ledger-container">
+    <!-- Header -->
+    <div class="ledger-header">
+        <div class="ledger-title">
+            <h1 class="animate-fade-in">My Investments</h1>
+            <div class="ledger-subtitle animate-fade-in animate-delay-1">Portfolio performance and asset allocation
+            </div>
+        </div>
+        <div>
+            <a href="{% url 'broker_sync' %}" class="btn-ghost animate-fade-in animate-delay-2"
+                style="margin-right: 8px;">
+                <i class="fa-solid fa-rotate"></i> Sync
+            </a>
+            <a href="{% url 'add_investment' %}" class="btn-add-tx animate-fade-in animate-delay-2">
+                <i class="fa-solid fa-plus"></i> Add Invest
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="ledger-stats-row animate-fade-in animate-delay-2">
+        <div class="stat-card-ledger">
+            <div class="stat-label">TOTAL INVESTED</div>
+            <div class="stat-val">₹{{ total_invested|floatformat:0 }}</div>
+        </div>
+        <div class="stat-card-ledger">
+            <div class="stat-label">CURRENT VALUE</div>
+            <div class="stat-val">₹{{ current_value|floatformat:0 }}</div>
+        </div>
+        <div class="stat-card-ledger">
+            <div class="stat-label">RETURNS</div>
+            <div class="stat-val"
+                style="color: {% if returns_pct >= 0 %}var(--accent-mint){% else %}var(--accent-coral){% endif %};">
+                {% if returns_pct >= 0 %}+{% endif %}{{ returns_pct|floatformat:1 }}%
+            </div>
+        </div>
+        <div class="stat-card-ledger">
+            <div class="stat-label">ASSETS</div>
+            <div class="stat-val">{{ investments|length }}</div>
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <!-- Table Card -->
+    <div class="card-hub animate-fade-in animate-delay-3" style="padding: 0; overflow: hidden; margin-top: 25px;">
+        <div class="table-responsive">
+            <table class="ledger-table">
+                <thead>
+                    <tr>
+                        <th>ASSET NAME</th>
+                        <th>CATEGORY</th>
+                        <th>INVESTED AMT</th>
+                        <th>CURRENT VALUE</th>
+                        <th>UNITS</th>
+                        <th>DATE</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inv in investments %}
+                    <tr>
+                        <td>
+                            <div class="tx-info">
+                                <div class="tx-icon"
+                                    style="background: rgba(37, 99, 235, 0.1); color: var(--accent-blue);">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                </div>
+                                <div>
+                                    <div class="tx-name">{{ inv.name }}</div>
+                                    <div class="tx-date">Groww / Zerodha</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="category-tag">
+                                {{ inv.get_category_display }}
+                            </span>
+                        </td>
+                        <td class="tx-amount">₹{{ inv.amount|floatformat:0 }}</td>
+                        <td class="tx-amount" style="font-weight: 700;">₹{{ inv.current_value|floatformat:0 }}</td>
+                        <td style="color: var(--text-muted); font-weight: 500;">{{ inv.quantity }}</td>
+                        <td style="color: var(--text-muted);">{{ inv.date|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{% url 'update_investment' inv.pk %}" class="btn-icon-action edit"><i
+                                        class="fa-solid fa-pen"></i></a>
+                                <a href="{% url 'delete_investment' inv.pk %}" class="btn-icon-action delete"><i
+                                        class="fa-solid fa-trash"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="empty-state-cell">
+                            <i class="fa-solid fa-seedling"></i>
+                            <p>No investments found. Start growing your wealth!</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

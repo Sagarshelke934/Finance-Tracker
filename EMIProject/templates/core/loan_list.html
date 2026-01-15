@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Loans - FinTrack{% endblock %}
+
+{% block content %}
+<div class="ledger-container">
+    <!-- Header -->
+    <div class="ledger-header">
+        <div class="ledger-title">
+            <h1 class="animate-fade-in">My Loans</h1>
+            <div class="ledger-subtitle animate-fade-in animate-delay-1">Track your liabilities and repayment progress
+            </div>
+        </div>
+        <a href="{% url 'add_loan' %}" class="btn-add-tx animate-fade-in animate-delay-2">
+            <i class="fa-solid fa-plus"></i> Add Loan
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="ledger-stats-row animate-fade-in animate-delay-2">
+        <div class="stat-card-ledger">
+            <div class="stat-label">TOTAL OUTSTANDING</div>
+            <div class="stat-val">₹{{ total_principal|floatformat:0 }}</div>
+        </div>
+        <div class="stat-card-ledger">
+            <div class="stat-label">MONTHLY EMI</div>
+            <div class="stat-val">₹{{ total_monthly_emi|floatformat:0 }}</div>
+        </div>
+        <div class="stat-card-ledger">
+            <div class="stat-label">ACTIVE LOANS</div>
+            <div class="stat-val">{{ loans|length }}</div>
+        </div>
+        <div class="stat-card-ledger">
+            <div class="stat-label">STATUS</div>
+            <div class="stat-val" style="color: var(--accent-coral);">Active</div>
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="card-hub animate-fade-in animate-delay-3" style="padding: 0; overflow: hidden; margin-top: 25px;">
+        <table class="ledger-table">
+            <thead>
+                <tr>
+                    <th>LOAN NAME</th>
+                    <th>PRINCIPAL</th>
+                    <th>RATE</th>
+                    <th>TENURE</th>
+                    <th>EMI</th>
+                    <th>ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loan in loans %}
+                <tr>
+                    <td>
+                        <div class="tx-info">
+                            <div class="tx-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                                <i class="fa-solid fa-hand-holding-dollar"></i>
+                            </div>
+                            <div>
+                                <div class="tx-name">{{ loan.name }}</div>
+                                <div class="tx-date">{{ loan.start_date|date:"M d, Y" }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="tx-amount">₹{{ loan.principal|floatformat:0 }}</td>
+                    <td>
+                        <span class="category-tag"
+                            style="background: rgba(37, 99, 235, 0.1); color: var(--accent-blue);">
+                            {{ loan.rate }}%
+                        </span>
+                    </td>
+                    <td style="color: var(--text-muted); font-weight: 500;">{{ loan.tenure_months }} Mo</td>
+                    <td class="tx-amount" style="color: var(--accent-coral);">₹{{ loan.calculate_emi|floatformat:0 }}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <!-- Placeholder View/Edit actions -->
+                            <a href="{% url 'update_loan' loan.pk %}" class="btn-icon-action edit"><i
+                                    class="fa-solid fa-pen"></i></a>
+                            <a href="{% url 'delete_loan' loan.pk %}" class="btn-icon-action delete"><i
+                                    class="fa-solid fa-trash"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-state-cell">
+                        <i class="fa-solid fa-vault"></i>
+                        <p>No active loans found. You are debt-free!</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,576 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="header-glass" style="display: flex; justify-content: space-between; align-items: center;">
+    <div class="page-title">
+        <p style="color: var(--text-muted); margin-top: 4px;"><strong>Welcome back, {{ user.username|title }}</strong>
+        </p>
+    </div>
+
+    <!-- Notification Center -->
+    <div class="notification-wrapper">
+        <button class="nav-icon-btn" onclick="toggleNotifications()" id="notif-btn"
+            style="position: relative; width: 40px; height: 40px; border-radius: 50%; background: var(--bg-card); box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: center;">
+            <i class="fa-solid fa-bell"></i>
+            {% if budget_alerts or budget_analysis.budget_status == 'DANGER' %}
+            <span class="notification-badge badge-pulse"></span>
+            {% endif %}
+        </button>
+
+        <div class="dropdown-menu notification-dropdown" id="notif-dropdown">
+            <div class="notification-header">
+                <span>Notifications</span>
+                <span class="glass-pill" style="font-size: 0.7rem;">{% if budget_alerts %}New{% else %}All Caught Up{% endif %}</span>
+            </div>
+            <div class="notification-body">
+                <!-- Budget Analysis Widget -->
+                <div class="notification-item">
+                    <div class="notification-icon-box"
+                        style="background: rgba(59, 130, 246, 0.1); color: var(--accent-blue);">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">Budget Status</div>
+                        <div class="notification-desc">
+                            {% if budget_analysis.budget_status == 'DANGER' %}
+                            <span style="color: var(--accent-coral); font-weight: 700;">⚠️ Critical Limit</span>
+                            {% else %}
+                            <span style="color: var(--accent-mint); font-weight: 600;">✅ Within Safe Limits</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerts Logic -->
+                {% for alert in budget_alerts %}
+                <div class="notification-item">
+                    <div class="notification-icon-box"
+                        style="background: rgba(239, 68, 68, 0.1); color: var(--accent-coral);">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">{{ alert.title }}</div>
+                        <div class="notification-desc">{{ alert.message }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="notification-footer">
+                <a href="{% url 'whatsapp_report' %}" class="btn-whatsapp-full">
+                    <i class="fa-brands fa-whatsapp"></i> Send Daily Brief
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleNotifications() {
+        const dropdown = document.getElementById('notif-dropdown');
+        dropdown.classList.toggle('show');
+
+        // Close on click outside
+        document.addEventListener('click', function closeMenu(e) {
+            if (!e.target.closest('.notification-wrapper')) {
+                dropdown.classList.remove('show');
+                document.removeEventListener('click', closeMenu);
+            }
+        });
+    }
+</script>
+
+<!-- Alerts Moved to Notification Center -->
+
+<div class="income-control-bar animate-fade-in animate-delay-1">
+    <div class="income-display">
+        <div class="income-label">Monthly Income</div>
+        <div class="income-value-wrapper">
+            <span class="income-amount" id="income-display-val">₹{{ total_income|default:"0.00" }}</span>
+            <button class="btn-edit-income" onclick="toggleIncomeEdit()">
+                <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+        </div>
+    </div>
+
+    <form class="income-edit-form" id="income-edit-form" method="POST" action="{% url 'update_profile_value' %}">
+        {% csrf_token %}
+        <input type="number" name="monthly_income" step="0.01" placeholder="Enter monthly income"
+            value="{{ raw_total_income|default:'' }}" required>
+        <button type="submit" class="btn-save-income">
+            <i class="fa-solid fa-check"></i>
+        </button>
+        <button type="button" class="btn-cancel-income" onclick="toggleIncomeEdit()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </form>
+</div>
+
+<div class="dashboard-container">
+    <div class="dashboard-content">
+        <!-- Stats Cards -->
+        <link rel="stylesheet" href="{% static 'css/fintech_kpi.css' %}">
+        <script src="{% static 'js/fintech_kpi.js' %}" defer></script>
+
+        <!-- Premium Fintech KPI Grid -->
+        <div class="fintech-grid animate-fade-in animate-delay-2">
+            <!-- Savings Card (Green) -->
+            <div class="fintech-card accent-green" onclick="location.href='{% url 'saving_list' %}'">
+                <div class="kpi-header">
+                    <span class="kpi-label">Total Savings</span>
+                    <div class="kpi-icon-box"><i class="fa-solid fa-piggy-bank"></i></div>
+                </div>
+                <!-- data-target holds the raw number for JS animation -->
+                <h3 class="kpi-amount">₹<span class="count-up" data-target="{{ total_savings|default:0 }}">0</span></h3>
+                <div class="kpi-meta">
+                    <div class="kpi-trend positive">
+                        <i class="fa-solid fa-arrow-trend-up"></i> 12%
+                    </div>
+                    <span>vs last month</span>
+                </div>
+            </div>
+
+            <!-- Investments Card (Blue) -->
+            <div class="fintech-card accent-blue" onclick="location.href='{% url 'investment_list' %}'">
+                <div class="kpi-header">
+                    <span class="kpi-label">Total Investments</span>
+                    <div class="kpi-icon-box"><i class="fa-solid fa-chart-line"></i></div>
+                </div>
+                <h3 class="kpi-amount">₹<span class="count-up" data-target="{{ total_investments|default:0 }}">0</span>
+                </h3>
+                <div class="kpi-meta">
+                    <div class="kpi-trend positive">
+                        <i class="fa-solid fa-arrow-trend-up"></i> 8.5%
+                    </div>
+                    <span>vs last month</span>
+                </div>
+            </div>
+
+            <!-- Expenses Card (Red) -->
+            <div class="fintech-card accent-red" onclick="location.href='{% url 'expense_list' %}'">
+                <div class="kpi-header">
+                    <span class="kpi-label">Total Expenses</span>
+                    <div class="kpi-icon-box"><i class="fa-solid fa-wallet"></i></div>
+                </div>
+                <h3 class="kpi-amount">₹<span class="count-up" data-target="{{ total_expenses|default:0 }}">0</span>
+                </h3>
+                <div class="kpi-meta">
+                    <!-- Example logic: if expenses > previous_month 'negative' else 'positive' -->
+                    <div class="kpi-trend negative">
+                        <i class="fa-solid fa-arrow-trend-up"></i> 5%
+                    </div>
+                    <span>vs last month</span>
+                </div>
+            </div>
+
+            <!-- EMI Card (Amber) -->
+            <div class="fintech-card accent-amber" onclick="location.href='{% url 'loan_list' %}'">
+                <div class="kpi-header">
+                    <span class="kpi-label">Monthly EMI</span>
+                    <div class="kpi-icon-box"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                </div>
+                <h3 class="kpi-amount">₹<span class="count-up" data-target="{{ total_monthly_emi|default:0 }}">0</span>
+                </h3>
+                <div class="kpi-meta">
+                    <div class="kpi-trend neutral">
+                        <i class="fa-solid fa-minus"></i> 0%
+                    </div>
+                    <span>vs last month</span>
+                </div>
+            </div>
+
+            <!-- Quick Actions (Purple) -->
+            <!-- Using similar card style but for actions -->
+            <!-- Quick Actions (Purple) -->
+            <div class="fintech-card accent-purple" style="justify-content: flex-start; gap: 0.75rem;">
+                <div class="kpi-header" style="margin-bottom: 0.5rem;">
+                    <span class="kpi-label">Quick Actions</span>
+                    <div class="kpi-icon-box"><i class="fa-solid fa-bolt"></i></div>
+                </div>
+                <!-- 3x2 Grid for 6 Buttons -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                    <!-- 1. Payment (Scan & Pay) -->
+                    <a href="{% url 'scan_qr' %}"
+                        style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 12px; background: #eef2ff; border-radius: 12px; text-align: center; color: #4338ca; text-decoration: none; border: 1px solid #e0e7ff; transition: all 0.2s;">
+                        <i class="fa-solid fa-qrcode" style="font-size: 1.1rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Payment</span>
+                    </a>
+
+                    <!-- 2. Add Expense -->
+                    <a href="{% url 'expense_list' %}?new=true"
+                        style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 12px; background: #fef2f2; border-radius: 12px; text-align: center; color: #b91c1c; text-decoration: none; border: 1px solid #fee2e2; transition: all 0.2s;">
+                        <i class="fa-solid fa-receipt" style="font-size: 1.1rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Expense</span>
+                    </a>
+
+                    <!-- 3. Loans -->
+                    <a href="{% url 'loan_list' %}"
+                        style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 12px; background: #fff7ed; border-radius: 12px; text-align: center; color: #c2410c; text-decoration: none; border: 1px solid #ffedd5; transition: all 0.2s;">
+                        <i class="fa-solid fa-hand-holding-dollar" style="font-size: 1.1rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Loans</span>
+                    </a>
+
+                    <!-- 4. Invest -->
+                    <a href="{% url 'investment_list' %}"
+                        style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 12px; background: #eff6ff; border-radius: 12px; text-align: center; color: #1d4ed8; text-decoration: none; border: 1px solid #dbeafe; transition: all 0.2s;">
+                        <i class="fa-solid fa-chart-line" style="font-size: 1.1rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Invest</span>
+                    </a>
+
+                    <!-- 5. Vault -->
+                    <a href="{% url 'document_list' %}"
+                        style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 12px; background: #f0fdf4; border-radius: 12px; text-align: center; color: #15803d; text-decoration: none; border: 1px solid #dcfce7; transition: all 0.2s;">
+                        <i class="fa-solid fa-vault" style="font-size: 1.1rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Vault</span>
+                    </a>
+
+                    <!-- 6. Save -->
+                    <a href="{% url 'saving_list' %}?new=true"
+                        style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 12px; background: #ecfdf5; border-radius: 12px; text-align: center; color: #047857; text-decoration: none; border: 1px solid #d1fae5; transition: all 0.2s;">
+                        <i class="fa-solid fa-piggy-bank" style="font-size: 1.1rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Save</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-row animate-fade-in animate-delay-3">
+            <div class="card-hub">
+                <h3 class="card-title">50-30-20 Budget Analysis</h3>
+                <canvas id="budgetChart" style="max-height: 300px;"></canvas>
+            </div>
+
+            <!-- Recurring Expenses (Moved here) -->
+            <div class="card-hub">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 class="card-title" style="margin-bottom: 0;"><i class="fa-solid fa-rotate"></i> Recurring Direct
+                    </h3>
+                    <a href="{% url 'recurring_list' %}"
+                        style="font-size: 0.85rem; color: var(--accent-blue); text-decoration: none; font-weight: 500;">Manage</a>
+                </div>
+                {% if recurring_expenses %}
+                <div
+                    style="display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto; padding-right: 4px;">
+                    {% for expense in recurring_expenses %}
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--bg-secondary); border-radius: 10px; border-left: 3px solid var(--accent-coral);">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div
+                                style="width: 32px; height: 32px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); display: flex; align-items: center; justify-content: center; color: var(--accent-coral); font-size: 0.9rem;">
+                                <i class="fa-solid fa-repeat"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">{{
+                                    expense.title }}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">{{
+                                    expense.get_frequency_display }}</div>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: 700; color: var(--accent-coral); font-size: 0.95rem;">₹{{
+                                expense.amount|floatformat:0 }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 32px; color: var(--text-muted);">
+                    <i class="fa-solid fa-robot" style="font-size: 2rem; margin-bottom: 12px; opacity: 0.3;"></i>
+                    <div>No recurring expenses</div>
+                    <a href="{% url 'recurring_add' %}" class="btn-primary-new"
+                        style="margin-top: 12px; font-size: 0.8rem;">
+                        <i class="fa-solid fa-plus"></i> Setup
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Market Benchmarks -->
+        <div class="card-hub animate-fade-in animate-delay-3" style="margin-top: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 class="card-title" style="margin-bottom: 0;"><i class="fa-solid fa-chart-simple"></i> Market Pulse
+                </h3>
+                <span
+                    style="font-size: 0.75rem; background: var(--bg-hover); padding: 4px 10px; border-radius: 20px; color: var(--text-muted); font-weight: 600;">Live
+                    Market (Debug: {{ debug_rate }})</span>
+            </div>
+            <div class="benchmark-grid"
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px;">
+                <!-- Home Loan -->
+                <div class="fintech-card-mini">
+                    <div style="margin-bottom: 8px; color: var(--text-muted); font-size: 0.8rem;"><i
+                            class="fa-solid fa-house"></i> Home Loan</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">8.55%</div>
+                    <div class="bm-status rising"><i class="fa-solid fa-arrow-trend-up"></i> Rising</div>
+                </div>
+                <!-- Car Loan -->
+                <div class="fintech-card-mini">
+                    <div style="margin-bottom: 8px; color: var(--text-muted); font-size: 0.8rem;"><i
+                            class="fa-solid fa-car"></i> Car Loan</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">9.20%</div>
+                    <div class="bm-status stable"><i class="fa-solid fa-minus"></i> Stable</div>
+                </div>
+                <!-- Personal Loan -->
+                <div class="fintech-card-mini">
+                    <div style="margin-bottom: 8px; color: var(--text-muted); font-size: 0.8rem;"><i
+                            class="fa-solid fa-user"></i> Personal</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">10.45%</div>
+                    <div class="bm-status falling"><i class="fa-solid fa-arrow-trend-down"></i> Falling</div>
+                </div>
+                <!-- FD Rate -->
+                <div class="fintech-card-mini">
+                    <div style="margin-bottom: 8px; color: var(--text-muted); font-size: 0.8rem;"><i
+                            class="fa-solid fa-percent"></i> FD (1Y)</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">7.10%</div>
+                    <div class="bm-status stable" style="color: var(--accent-success);">Peak</div>
+                </div>
+            </div>
+
+            <!-- Ideal Term Coverage Banner -->
+            <div
+                style="margin-top: 16px; background: linear-gradient(135deg, #eef2ff, #f8fafc); padding: 12px 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e0e7ff;">
+                <div>
+                    <div
+                        style="font-size: 0.8rem; color: var(--accent-blue); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                        Recommended Insurance</div>
+                    <div style="font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">
+                        ₹1,00,00,000</div>
+                </div>
+                <div style="text-align: right;">
+                    <span
+                        style="background: var(--accent-blue); color: white; padding: 4px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 600;">20x
+                        Income</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions -->
+        <!-- Transactions Row -->
+        <!-- Transactions Row -->
+        <div class="charts-row">
+            <div class="card-hub animate-fade-in animate-delay-3">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 class="card-title" style="margin-bottom: 0;"><i class="fa-solid fa-list-ul"></i> Recent Activity
+                    </h3>
+                    <a href="{% url 'expense_list' %}"
+                        style="font-size: 0.8rem; background: var(--bg-hover); padding: 6px 12px; border-radius: 20px; color: var(--text-main); text-decoration: none; font-weight: 600; transition: all 0.2s;">View
+                        All</a>
+                </div>
+                <div id="transactions-container" class="transactions-list">
+                    {% for t in recent_expenses %}
+                    <div class="transaction-item">
+                        <div class="t-icon">
+                            {% if 'Food' in t.category or 'Groceries' in t.category %}<i class="fa-solid fa-utensils"
+                                style="color: #f59e0b;"></i>
+                            {% elif 'Transport' in t.category or 'Fuel' in t.category %}<i class="fa-solid fa-car"
+                                style="color: #3b82f6;"></i>
+                            {% elif 'Bills' in t.category or 'EMI' in t.category %}<i
+                                class="fa-solid fa-file-invoice-dollar" style="color: #ef4444;"></i>
+                            {% elif 'Shopping' in t.category %}<i class="fa-solid fa-bag-shopping"
+                                style="color: #8b5cf6;"></i>
+                            {% else %}<i class="fa-solid fa-receipt" style="color: var(--text-muted);"></i>{% endif %}
+                        </div>
+                        <div class="t-details">
+                            <div class="t-title">{{ t.title }}</div>
+                            <div class="t-date">{{ t.date|date:"d M" }} • {{ t.get_category_display }}</div>
+                        </div>
+                        <div class="t-amount">
+                            -₹{{ t.amount|floatformat:0 }}</div>
+                    </div>
+                    {% empty %}
+                    <div
+                        style="text-align: center; padding: 40px 20px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div
+                            style="background: var(--bg-secondary); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                            <i class="fa-solid fa-receipt" style="font-size: 1.5rem; opacity: 0.4;"></i>
+                        </div>
+                        <div>No recent transactions</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="card-hub animate-fade-in animate-delay-3"
+                style="background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; border: none; height: fit-content; padding: 24px; position: relative; overflow: hidden;">
+                <!-- Decorative Circle -->
+                <div
+                    style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.1);">
+                </div>
+
+                <div
+                    style="font-weight: 700; font-size: 1.2rem; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; position: relative; z-index: 1;">
+                    <i class="fa-solid fa-lightbulb" style="color: #fef08a;"></i> Money Tip
+                </div>
+                <div style="font-size: 0.95rem; opacity: 0.95; line-height: 1.6; position: relative; z-index: 1;">
+                    Investing just <strong>20%</strong> of your income monthly can accelerate your wealth goals by
+                    <strong>5 years</strong>. Start a SIP today!
+                </div>
+                <div style="margin-top: 16px;">
+                    <a href="{% url 'investment_list' %}"
+                        style="display: inline-block; background: rgba(255,255,255,0.2); color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 600; backdrop-filter: blur(4px);">Start
+                        Investing</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recurring Expenses -->
+        <!-- Recurring Expenses moved to top -->
+    </div>
+</div>
+
+{{ chart_labels|json_script:"chart-labels-data" }}
+{{ chart_data|json_script:"chart-data-data" }}
+{{ raw_total_expenses|default:0|json_script:"raw-expenses-data" }}
+{{ raw_total_emi|default:0|json_script:"raw-emi-data" }}
+{{ budget_analysis|json_script:"budget-analysis-data" }}
+
+<script>
+    const animateValue = (obj, start, end, duration) => {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            obj.innerText = '₹' + Math.floor(progress * (end - start) + start).toLocaleString('en-IN');
+            if (progress < 1) { window.requestAnimationFrame(step); }
+            else { obj.innerText = '₹' + end.toLocaleString('en-IN'); }
+        };
+        window.requestAnimationFrame(step);
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.stat-value-clean').forEach(el => {
+            const value = parseFloat(el.innerText.replace(/[^0-9.]/g, ''));
+            if (!isNaN(value) && value > 0) { animateValue(el, 0, value, 1200); }
+        });
+
+        // initCharts(); // Call if defined
+        if (typeof initCharts === 'function') {
+            initCharts();
+        }
+    });
+</script>
+<script>
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#6b7280';
+    Chart.defaults.scale.grid.color = 'rgba(229, 231, 235, 0.5)';
+
+    let budgetChart;
+
+    const initCharts = () => {
+        const getJson = (id) => JSON.parse(document.getElementById(id).textContent || '[]');
+        const totalExpenses = parseFloat(JSON.parse(document.getElementById('raw-expenses-data').textContent || '0'));
+        const totalEMI = parseFloat(JSON.parse(document.getElementById('raw-emi-data').textContent || '0'));
+
+        const ctxBudget = document.getElementById('budgetChart')?.getContext('2d');
+        if (ctxBudget) {
+            const budgetData = getJson('budget-analysis-data');
+            const actualValues = [
+                budgetData.needs || 0,
+                budgetData.wants || 0,
+                budgetData.savings || 0,
+                (budgetData.needs || 0) + (budgetData.wants || 0) + (budgetData.savings || 0)
+            ];
+            const income = parseFloat(document.getElementById('income-display-val').innerText.replace(/[^0-9.]/g, '')) || 0;
+            const idealValues = [income * 0.5, income * 0.3, income * 0.2, income];
+
+            budgetChart = new Chart(ctxBudget, {
+                type: 'bar',
+                data: {
+                    labels: ['Needs (50%)', 'Wants (30%)', 'Savings (20%)', 'Total'],
+                    datasets: [
+                        {
+                            label: 'Ideal budget',
+                            data: idealValues,
+                            backgroundColor: '#22c55e', // Green from image
+                            borderRadius: 4,
+                            barPercentage: 0.7,
+                            categoryPercentage: 0.8
+                        },
+                        {
+                            label: 'Actual spending',
+                            data: actualValues,
+                            backgroundColor: '#3b82f6', // Blue from image
+                            borderRadius: 4,
+                            barPercentage: 0.7,
+                            categoryPercentage: 0.8
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { position: 'top', labels: { padding: 15, font: { size: 12 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return context.dataset.label + ': ₹' + context.parsed.y.toLocaleString('en-IN');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value) {
+                                    return '₹' + value.toLocaleString('en-IN');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        const ctxExpense = document.getElementById('expenseChart')?.getContext('2d');
+        if (ctxExpense) {
+            const labels = getJson('chart-labels-data');
+            const data = getJson('chart-data-data');
+
+            new Chart(ctxExpense, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            '#3b82f6', // Blue
+                            '#10b981', // Green
+                            '#f59e0b', // Amber
+                            '#ef4444', // Red
+                            '#8b5cf6', // Purple
+                            '#ec4899'  // Pink
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { position: 'right', labels: { padding: 15, font: { size: 12 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return context.label + ': ₹' + context.parsed.toLocaleString('en-IN');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    };
+</script>
+
+<script>
+    function toggleIncomeEdit() {
+        const form = document.getElementById('income-edit-form');
+        form.classList.toggle('active');
+    }
+</script>
+
+{% endblock %}

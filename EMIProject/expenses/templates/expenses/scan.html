@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+        <h2>Scan & Pay</h2>
+        <p class="text-secondary">Scan a UPI QR code to log an expense.</p>
+
+        <div id="reader"
+            style="width: 100%; min-height: 300px; background: #000; border-radius: 1rem; overflow: hidden;"></div>
+
+        <div id="result-container" class="mt-3" style="display: none;">
+            <div class="alert alert-success">
+                <strong>QR Code Detected!</strong><br>
+                Redirecting to add expense...
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <a href="{% url 'expense_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </div>
+</div>
+
+<!-- Load html5-qrcode library -->
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+<script>
+    function onScanSuccess(decodedText, decodedResult) {
+        // Handle the scanned code as you like, for example:
+        console.log(`Code matched = ${decodedText}`, decodedResult);
+
+        // Stop scanning
+        html5QrcodeScanner.clear();
+
+        document.getElementById('result-container').style.display = 'block';
+
+        // Parse UPI URL
+        // format: upi://pay?pa=address@bank&pn=Payee%20Name&am=100.00...
+        let payeeName = '';
+        let amount = '';
+
+        try {
+            const urlParams = new URLSearchParams(decodedText.split('?')[1]);
+            payeeName = urlParams.get('pn') || '';
+            amount = urlParams.get('am') || '';
+
+            // Clean up payee name (replace + with space if needed, though URLSearchParams handles decoding)
+        } catch (e) {
+            console.error("Error parsing UPI string", e);
+        }
+
+        // Redirect to add expense form
+        const targetUrl = "{% url 'expense_create' %}?title=" + encodeURIComponent(payeeName) + "&amount=" + encodeURIComponent(amount);
+        setTimeout(() => {
+            window.location.href = targetUrl;
+        }, 1000);
+    }
+
+    function onScanFailure(error) {
+        // handle scan failure, usually better to ignore and keep scanning.
+        // console.warn(`Code scan error = ${error}`);
+    }
+
+    let html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader",
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        /* verbose= */ false);
+    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+</script>
+{% endblock %}
