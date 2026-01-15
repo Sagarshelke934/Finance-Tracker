@@ -9,10 +9,10 @@ from .models import Saving, Investment, Loan, Policy
 class ChatBotService:
     def __init__(self):
         # Allow user to set key via env or hardcode it here for testing
-        self.gemini_key = os.environ.get("GOOGLE_API_KEY", "")
+        self.gemini_key = os.environ.get("GOOGLE_API_KEY", "AIzaSyBbb36aoPG2oWMyFtWJzRIg28RenDcxPBc")
         self.openai_key = os.environ.get("OPENAI_API_KEY", "")
         
-        self.gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.gemini_key}"
+        self.gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={self.gemini_key}"
         self.openai_url = "https://api.openai.com/v1/chat/completions"
 
     def get_context_data(self):

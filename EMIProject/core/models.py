@@ -160,6 +160,7 @@ class UserProfile(models.Model):
     manual_investment_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     manual_policy_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     manual_emi_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    vault_pin = models.CharField(max_length=4, blank=True, null=True, help_text="4-digit PIN for Document Vault")
 
     def __str__(self):
         return f"{self.user.username}'s Profile"

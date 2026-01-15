@@ -86,6 +86,22 @@ class WhatsAppReportView(LoginRequiredMixin, View):
             
         return redirect('home')
 
+class WhatsAppTestView(LoginRequiredMixin, View):
+    def get(self, request):
+        service = WhatsAppService()
+        # Test message to specific number as requested
+        target = "+919130044796"
+        msg = "🔔 FinTrack Test Alert: This is a test message sent via pywhatkit!"
+        
+        success, response = service.send_message(target, msg)
+        
+        if success:
+            messages.success(request, f"Test alert triggered for {target}! Check the server browser.")
+        else:
+            messages.error(request, f"Failed to send test alert: {response}")
+            
+        return redirect('home')
+
 class UpdateProfileValueView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         # Fields that can be updated
@@ -528,42 +544,49 @@ class HomeView(LoginRequiredMixin, TemplateView):
 
     def _process_recurring_expenses(self):
         """
-        Checks for due Recurring Expenses and creates them automatically.
+        Checks for due Recurring Expenses/SIPs and creates them automatically.
+        Uses 'payment_date' (1-31) to determine due day.
         """
         from expenses.models import RecurringExpense, Expense
         recurring_items = RecurringExpense.objects.filter(is_active=True)
         today = date.today()
         
         for item in recurring_items:
-            # Determine reference date
-            ref_date = item.last_processed_date or item.start_date
+            # Check if processed this month
+            if item.last_processed_date and item.last_processed_date.month == today.month and item.last_processed_date.year == today.year:
+                continue
+
+            # Check if today is the payment date (or past it if we missed it this month)
+            # We simple check if today.day >= payment_date
+            # Real logic might be more complex (handle Feb 30 etc), but simple >= implies we execute once per month
             
-            # If it's the very first time and start_date is today or past, process it.
-            # Else, check difference.
-            due = False
-            days_diff = (today - ref_date).days
+            should_run = False
             
-            # Special case: First run
-            if not item.last_processed_date and today >= item.start_date:
-                due = True
-            else:
-                if item.frequency == 'MON' and days_diff >= 30:
-                    due = True
-                elif item.frequency == 'WEK' and days_diff >= 7:
-                    due = True
+            # Simple Logic: Run if we haven't run this month AND today >= payment_date
+            if today.day >= item.payment_date:
+                should_run = True
             
-            if due:
-                Expense.objects.create(
-                    title=f"{item.title} (Auto)",
-                    amount=item.amount,
-                    category=item.category,
-                    date=today
-                )
+            if should_run:
+                if item.recurrence_type == 'SIP':
+                    # Create Investment
+                    Investment.objects.create(
+                        name=f"{item.title} (Auto SIP)",
+                        amount=item.amount,
+                        category='OTH', # Default or map if added to model
+                        date=today,
+                        external_id=f"SIP-{item.id}-{today.isoformat()}"
+                    )
+                else:
+                    # Create Expense
+                    Expense.objects.create(
+                        title=f"{item.title} (Auto)",
+                        amount=item.amount,
+                        category=item.category or 'OTH',
+                        date=today
+                    )
                 
                 # Update last processed
                 item.last_processed_date = today
-                item.save()
-
                 item.save()
 
     def _get_net_worth_trend(self):
@@ -960,10 +983,13 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        from django.db.models import Sum
+        from datetime import date, timedelta
+        import calendar
+        from dateutil.relativedelta import relativedelta
         
         # --- 1. Expense Breakdown (Pie/Doughnut) ---
         expenses = Expense.objects.all()
-        
         category_data = expenses.values('category').annotate(total=Sum('amount')).order_by('-total')
         context['pie_chart'] = {
             'labels': [dict(Expense.CATEGORY_CHOICES).get(item['category'], item['category']) for item in category_data],
@@ -971,11 +997,34 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
         }
 
         # --- 2. Monthly Trends (Bar Chart) ---
-        # Mocking last 6 months data for demo purposes if real data is sparse
+        # Last 6 months
+        today = date.today()
+        labels = []
+        income_data = []
+        expense_data = []
+        
+        user_profile = self.request.user.userprofile
+        # Fallback income if 0
+        monthly_income = float(user_profile.monthly_income) if user_profile.monthly_income > 0 else 50000 
+
+        for i in range(5, -1, -1):
+            date_cursor = today - relativedelta(months=i)
+            month_start = date_cursor.replace(day=1)
+            # End of month
+            _, last_day = calendar.monthrange(month_start.year, month_start.month)
+            month_end = month_start.replace(day=last_day)
+            
+            labels.append(month_start.strftime('%b'))
+            
+            # Sum expenses for this month
+            month_exp = Expense.objects.filter(date__gte=month_start, date__lte=month_end).aggregate(Sum('amount'))['amount__sum'] or 0
+            expense_data.append(float(month_exp))
+            income_data.append(monthly_income) # Using fixed income for now
+
         context['bar_chart'] = {
-            'labels': ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'],
-            'income': [50000, 52000, 51000, 55000, 60000, 58000],
-            'expenses': [30000, 35000, 32000, 40000, 45000, 20000] # Dynamic based on real data in production
+            'labels': labels,
+            'income': income_data,
+            'expenses': expense_data
         }
 
         # --- 3. EMI/Loan Distribution (Doughnut) ---
@@ -985,18 +1034,36 @@ class AnalyticsView(LoginRequiredMixin, TemplateView):
             'data': [float(l.principal) for l in loans]
         }
 
-        # --- 4. Net Worth / Stock Growth (Line Chart) ---
-        # Reusing the logic or creating specific stock trend
-        context['stock_chart'] = self._get_stock_trend()
+        # --- 4. Portfolio Growth (Line Chart) ---
+        # Cumulative invested amount over last 6 months
+        stock_labels = []
+        stock_data = []
+        
+        # Determine total invested BEFORE the 6 month window
+        start_of_window = (today - relativedelta(months=5)).replace(day=1)
+        base_invested = Investment.objects.filter(date__lt=start_of_window).aggregate(Sum('amount'))['amount__sum'] or 0
+        running_total = float(base_invested)
+
+        for i in range(5, -1, -1):
+            date_cursor = today - relativedelta(months=i)
+            month_start = date_cursor.replace(day=1)
+            _, last_day = calendar.monthrange(month_start.year, month_start.month)
+            month_end = month_start.replace(day=last_day)
+            
+            stock_labels.append(month_start.strftime('%b'))
+            
+            # Add investments made IN this month to running total
+            month_inv = Investment.objects.filter(date__gte=month_start, date__lte=month_end).aggregate(Sum('amount'))['amount__sum'] or 0
+            running_total += float(month_inv)
+            stock_data.append(running_total)
+
+        context['stock_chart'] = {
+            'labels': stock_labels,
+            'data': stock_data, 
+            'label': 'Invested Capital'
+        }
 
         return context
-
-    def _get_stock_trend(self):
-        # Mock data for stock trend
-        return {
-            'labels': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            'data': [10000, 11000, 10500, 13000, 15000, 16000]
-        }
 
 class LoanListView(LoginRequiredMixin, ListView):
     model = Loan
@@ -1086,13 +1153,88 @@ class PolicyDeleteView(LoginRequiredMixin, DeleteView):
     template_name = 'core/confirm_delete.html'
     success_url = reverse_lazy('policy_list')
 
-class DocumentListView(LoginRequiredMixin, ListView):
+# --- Document Vault Security ---
+from django.shortcuts import redirect
+from django.views.generic.edit import FormView
+from django import forms
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+class VaultAccessMixin(LoginRequiredMixin):
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+            
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        
+        # 1. Setup PIN if not exists
+        if not profile.vault_pin:
+            return redirect('vault_setup')
+            
+        # 2. Check Session Lock
+        if not request.session.get('vault_unlocked', False):
+            return redirect('vault_unlock')
+            
+        return super().dispatch(request, *args, **kwargs)
+
+class VaultUnlockView(LoginRequiredMixin, FormView):
+    template_name = 'core/vault_unlock.html'
+    success_url = reverse_lazy('document_list')
+    
+    class UnlockForm(forms.Form):
+        pin = forms.CharField(max_length=4, widget=forms.PasswordInput(attrs={
+            'class': 'form-control', 
+            'placeholder': 'Enter 4-digit PIN',
+            'pattern': '[0-9]*', 
+            'inputmode': 'numeric',
+            'maxlength': '4',
+            'style': 'text-align: center; letter-spacing: 12px; font-size: 1.5rem;'
+        }))
+
+    form_class = UnlockForm
+
+    def form_valid(self, form):
+        pin = form.cleaned_data['pin']
+        profile = self.request.user.userprofile
+        if pin == profile.vault_pin:
+            self.request.session['vault_unlocked'] = True
+            return super().form_valid(form)
+        else:
+            form.add_error('pin', 'Incorrect PIN')
+            return self.form_invalid(form)
+
+class VaultSetupView(LoginRequiredMixin, FormView):
+    template_name = 'core/vault_setup.html'
+    success_url = reverse_lazy('document_list')
+    
+    class SetupForm(forms.Form):
+        pin = forms.CharField(max_length=4, widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Create 4-digit PIN', 'pattern': '[0-9]*', 'inputmode': 'numeric', 'maxlength': '4', 'style': 'text-align: center; letter-spacing: 8px; font-size: 1.2rem;'}))
+        confirm_pin = forms.CharField(max_length=4, widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm PIN', 'pattern': '[0-9]*', 'inputmode': 'numeric', 'maxlength': '4','style': 'text-align: center; letter-spacing: 8px; font-size: 1.2rem;'}))
+        
+        def clean(self):
+            cleaned_data = super().clean()
+            pin = cleaned_data.get("pin")
+            confirm_pin = cleaned_data.get("confirm_pin")
+
+            if pin and confirm_pin and pin != confirm_pin:
+                self.add_error('confirm_pin', "PINs do not match")
+
+    form_class = SetupForm
+
+    def form_valid(self, form):
+        pin = form.cleaned_data['pin']
+        profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+        profile.vault_pin = pin
+        profile.save()
+        self.request.session['vault_unlocked'] = True
+        return super().form_valid(form)
+
+class DocumentListView(VaultAccessMixin, ListView):
     model = Document
     template_name = 'core/document_list.html'
     context_object_name = 'documents'
     ordering = ['-uploaded_at']
 
-class DocumentDetailView(LoginRequiredMixin, DetailView):
+class DocumentDetailView(VaultAccessMixin, DetailView):
     model = Document
     template_name = 'core/document_detail.html'
     context_object_name = 'doc'

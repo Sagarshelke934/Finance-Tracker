@@ -165,6 +165,8 @@
                         <a href="{% url 'home' %}" class="dropdown-item"><i class="fa-solid fa-house"></i> Dashboard</a>
                         <a href="{% url 'expense_list' %}" class="dropdown-item"><i class="fa-solid fa-receipt"></i>
                             Expenses</a>
+                        <a href="{% url 'recurring_list' %}" class="dropdown-item"><i class="fa-solid fa-rotate"></i>
+                            Recurring</a>
                         <a href="{% url 'loan_list' %}" class="dropdown-item"><i
                                 class="fa-solid fa-building-columns"></i> Loans</a>
                         <a href="{% url 'saving_list' %}" class="dropdown-item"><i class="fa-solid fa-piggy-bank"></i>
@@ -183,6 +185,8 @@
                             class="nav-link-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Dashboard</a>
                         <a href="{% url 'expense_list' %}"
                             class="nav-link-item {% if request.resolver_match.url_name == 'expense_list' %}active{% endif %}">Expenses</a>
+                        <a href="{% url 'recurring_list' %}"
+                            class="nav-link-item {% if request.resolver_match.url_name == 'recurring_list' %}active{% endif %}">Recurring</a>
                         <a href="{% url 'loan_list' %}"
                             class="nav-link-item {% if request.resolver_match.url_name == 'loan_list' %}active{% endif %}">Loans</a>
                         <a href="{% url 'saving_list' %}"

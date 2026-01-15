@@ -1221,6 +1221,11 @@ ul {
     gap: 8px;
 }
 
+.income-edit-form.active {
+    display: flex;
+    animation: fadeIn 0.2s ease-out;
+}
+
 .income-input {
     background: var(--bg-body);
     border: 1px solid var(--border-light);

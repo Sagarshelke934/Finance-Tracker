@@ -1,81 +1,251 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
 
 {% block title %}Recurring Expenses | FinTrack{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Mobile Card View for Table */
+    @media (max-width: 768px) {
+        .desktop-table {
+            display: none;
+        }
+
+        .mobile-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .expense-card-mobile {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .expense-card-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .expense-card-label {
+            color: var(--text-muted);
+        }
+
+        .expense-card-value {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+    }
+
+    @media (min-width: 769px) {
+        .mobile-cards {
+            display: none;
+        }
+
+        .desktop-table {
+            display: block;
+        }
+    }
+
+    .kpi-summary-card {
+        background: linear-gradient(135deg, var(--primary-800), var(--primary-900));
+        color: white;
+        border-radius: var(--radius-xl);
+        padding: 24px;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 24px;
+        box-shadow: var(--shadow-md);
+    }
+
+    .kpi-summary-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.05) 45%, transparent 50%);
+        pointer-events: none;
+    }
+
+    @media (max-width: 576px) {
+        .hide-text-mobile {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="dashboard-header">
-    <div>
-        <h1>Recurring Expenses</h1>
-        <p class="text-secondary">Manage your automated bills and subscriptions.</p>
-    </div>
-    <div>
-        <a href="{% url 'recurring_add' %}" class="btn btn-primary">
+
+
+
+<div class="ledger-container">
+    <!-- Header -->
+    <div class="ledger-header">
+        <div class="ledger-title">
+            <h1 class="animate-fade-in">Recurring Direct</h1>
+            <div class="ledger-subtitle animate-fade-in animate-delay-1">Automated bills & subscriptions</div>
+        </div>
+        <a href="{% url 'recurring_add' %}" class="btn-add-tx animate-fade-in animate-delay-2">
             <i class="fa-solid fa-plus"></i> New Automation
         </a>
     </div>
+
+    <!-- Stats Cards -->
+    <div class="ledger-stats-row animate-fade-in animate-delay-2">
+        <div class="stat-card-ledger">
+            <div class="stat-label">TOTAL MONTHLY</div>
+            <div class="stat-val" id="total-monthly-display">--</div>
+        </div>
+        <div class="stat-card-ledger">
+            <div class="stat-label">ACTIVE</div>
+            <div class="stat-val">{{ recurring_expenses|length }}</div>
+        </div>
+
+        <div class="stat-card-ledger">
+            <div class="stat-label">STATUS</div>
+            <div class="stat-val" style="color: var(--accent-mint);">Active</div>
+        </div>
+    </div>
+
+    <!-- Main List Card -->
+    <div class="card-hub animate-fade-in animate-delay-3"
+        style="padding: 0; overflow: hidden; margin-top: 25px; min-height: 400px; background: var(--bg-card);">
+
+        {% if recurring_expenses %}
+        <div style="display: flex; flex-direction: column; gap: 0;">
+            {% for expense in recurring_expenses %}
+
+            <!-- List Item -->
+            <div class="recurring-item" data-amount="{{ expense.amount }}"
+                data-active="{{ expense.is_active|yesno:'true,false' }}">
+
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <!-- Icon Circle -->
+                    <div
+                        style="width: 44px; height: 44px; border-radius: 50%; background: {% if expense.recurrence_type == 'SIP' %}#dcfce7{% else %}#ffe4e6{% endif %}; display: flex; align-items: center; justify-content: center; color: {% if expense.recurrence_type == 'SIP' %}#16a34a{% else %}#ef4444{% endif %}; flex-shrink: 0;">
+                        <i class="fa-solid {% if expense.recurrence_type == 'SIP' %}fa-chart-line{% else %}fa-file-invoice-dollar{% endif %}"
+                            style="font-size: 1.1rem;"></i>
+                    </div>
+
+                    <div>
+                        <div style="font-weight: 700; font-size: 1rem; color: var(--text-main); margin-bottom: 2px;">
+                            {{ expense.title }}
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: capitalize;">
+                                {{ expense.get_recurrence_type_display }}
+                            </span>
+                            <span
+                                style="font-size: 0.7rem; background: var(--bg-surface); padding: 2px 8px; border-radius: 12px; border: 1px solid var(--border-light);">
+                                Due: {{ expense.payment_date|ordinal }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: right;">
+                    <div style="font-weight: 700; font-size: 1rem; color: #ef4444;">
+                        ₹{{ expense.amount|floatformat:0 }}
+                    </div>
+                </div>
+
+                <!-- Hover Actions -->
+                <div class="item-actions">
+                    <a href="{% url 'recurring_edit' expense.pk %}" style="color: var(--text-muted);"><i
+                            class="fa-solid fa-pen"></i></a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state" style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
+            <i class="fa-solid fa-receipt" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+            <p>No recurring payments set up.</p>
+            <a href="{% url 'recurring_add' %}" class="btn-new btn-primary-new" style="margin-top: 16px;">
+                Start Setup
+            </a>
+        </div>
+        {% endif %}
+    </div>
 </div>
 
-<div class="glass-panel" style="padding: var(--spacing-md);">
-    {% if recurring_expenses %}
-    <div style="overflow-x: auto;">
-        <table class="expenses-table">
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Amount</th>
-                    <th>Category</th>
-                    <th>Frequency</th>
-                    <th>Status</th>
-                    <th>Last Auto-Pay</th>
-                    <th>Next Due</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for expense in recurring_expenses %}
-                <tr>
-                    <td><strong>{{ expense.title }}</strong></td>
-                    <td style="color: var(--accent-danger); font-weight: 600;">₹{{ expense.amount }}</td>
-                    <td><span class="category-pill">{{ expense.get_category_display }}</span></td>
-                    <td>{{ expense.get_frequency_display }}</td>
-                    <td>
-                        {% if expense.is_active %}
-                        <span style="color: var(--accent-success);"><i class="fa-solid fa-check-circle"></i>
-                            Active</span>
-                        {% else %}
-                        <span style="color: var(--text-secondary);"><i class="fa-solid fa-pause-circle"></i>
-                            Paused</span>
-                        {% endif %}
-                    </td>
-                    <td class="text-secondary">{{ expense.last_processed_date|default:"Never" }}</td>
-                    <td class="text-secondary">
-                        <!-- Simple logic to show next due date roughly -->
-                        Auto
-                    </td>
-                    <td>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <a href="{% url 'recurring_edit' expense.pk %}" class="btn-action"
-                                style="padding: 0.4rem; color: var(--accent-info);">
-                                <i class="fa-solid fa-pen"></i>
-                            </a>
-                            <a href="{% url 'recurring_delete' expense.pk %}" class="btn-action"
-                                style="padding: 0.4rem; color: var(--accent-danger);">
-                                <i class="fa-solid fa-trash"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% else %}
-    <div class="empty-state" style="padding: var(--spacing-xl);">
-        <i class="fa-solid fa-robot" style="font-size: 3rem; margin-bottom: 1rem; color: var(--text-secondary);"></i>
-        <p>No recurring expenses set up yet.</p>
-        <p style="font-size: 0.9rem;">Automate your rent, Netflix, or gym membership.</p>
-        <a href="{% url 'recurring_add' %}" class="btn btn-primary" style="margin-top: 1rem;">Setup Now</a>
-    </div>
-    {% endif %}
-</div>
+<style>
+    .recurring-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+        /* Added horizontal padding to match card */
+        border-bottom: 1px solid var(--border-light);
+        position: relative;
+        transition: background-color 0.2s;
+    }
+
+    .recurring-item:last-child {
+        border-bottom: none !important;
+    }
+
+    .recurring-item:hover {
+        background-color: rgba(0, 0, 0, 0.01);
+    }
+
+    .item-actions {
+        position: absolute;
+        right: 10px;
+        opacity: 0;
+        transition: opacity 0.2s;
+        background: var(--bg-card);
+        padding: 4px;
+        border-radius: 4px;
+        box-shadow: -5px 0 10px var(--bg-card);
+    }
+
+    .recurring-item:hover .item-actions {
+        opacity: 1;
+        right: 24px;
+    }
+
+    @media (max-width: 576px) {
+        .recurring-item {
+            padding: 16px;
+        }
+
+        .item-actions {
+            opacity: 1;
+            /* Always show edit on mobile if needed, or keep hidden/tap */
+            position: relative;
+            right: auto;
+            box-shadow: none;
+            margin-left: 12px;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const rows = document.querySelectorAll('.recurring-item');
+        let total = 0;
+        rows.forEach(row => {
+            const amount = parseFloat(row.getAttribute('data-amount')) || 0;
+            const isActive = row.getAttribute('data-active') === 'true';
+            if (isActive) total += amount;
+        });
+
+        const display = document.getElementById('total-monthly-display');
+        if (display) {
+            display.innerText = '₹' + total.toLocaleString('en-IN');
+        }
+    });
+</script>
+
+
 {% endblock %}

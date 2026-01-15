@@ -57,11 +57,27 @@ class ExpenseListView(LoginRequiredMixin, ListView):
             
         return context
 
+from core.services.whatsapp import WhatsAppService
+
 class ExpenseCreateView(LoginRequiredMixin, CreateView):
     model = Expense
     form_class = ExpenseForm
     template_name = 'expenses/expense_form.html'
     success_url = reverse_lazy('expense_list')
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        
+        # Check for High Value Expense (Alert Threshold: ₹5,000)
+        if self.object.amount >= 5000:
+            try:
+                wa = WhatsAppService()
+                # send_alert handles the message format and target
+                wa.send_alert(self.request.user, self.object.title, self.object.amount)
+            except Exception as e:
+                print(f"Failed to send alert: {e}")
+                
+        return response
 
     def get_initial(self):
         initial = super().get_initial()
@@ -109,11 +125,13 @@ from .models import RecurringExpense
 class RecurringExpenseForm(forms.ModelForm):
     class Meta:
         model = RecurringExpense
-        fields = ['title', 'amount', 'category', 'frequency', 'start_date', 'is_active']
+        fields = ['title', 'amount', 'recurrence_type', 'category', 'payment_date', 'frequency', 'start_date', 'is_active']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Netflix, Rent'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control'}),
+            'recurrence_type': forms.Select(attrs={'class': 'form-control', 'onchange': 'toggleCategory(this)'}),
             'category': forms.Select(attrs={'class': 'form-control'}),
+            'payment_date': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 31, 'placeholder': 'Day (1-31)'}),
             'frequency': forms.Select(attrs={'class': 'form-control'}),
             'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input', 'style': 'margin-left: 0;'})

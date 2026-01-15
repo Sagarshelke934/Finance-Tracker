@@ -8,11 +8,14 @@ from .views import (
     LoanListView, SavingListView, InvestmentListView, PolicyListView, DocumentListView,
     DocumentDetailView, LoanUpdateView, LoanDeleteView, SavingUpdateView, SavingDeleteView,
     InvestmentUpdateView, InvestmentDeleteView, PolicyCreateView, PolicyUpdateView, PolicyDeleteView,
-    ChatBotView, WhatsAppReportView
+    ChatBotView, WhatsAppReportView, VaultUnlockView, VaultSetupView, WhatsAppTestView
 )
 
 urlpatterns = [
     path('whatsapp/report/', WhatsAppReportView.as_view(), name='whatsapp_report'),
+    path('whatsapp/test/', WhatsAppTestView.as_view(), name='whatsapp_test'),
+    path('documents/unlock/', VaultUnlockView.as_view(), name='vault_unlock'),
+    path('documents/setup/', VaultSetupView.as_view(), name='vault_setup'),
     path('chat/ask/', ChatBotView.as_view(), name='chatbot_ask'),
     path('', HomeView.as_view(), name='home'),
     path('update-profile-value/', UpdateProfileValueView.as_view(), name='update_profile_value'),

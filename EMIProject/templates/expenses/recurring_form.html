@@ -220,3 +220,27 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleCategory(selectElement) {
+        const categoryField = document.getElementById('id_category');
+        if (!categoryField) return;
+
+        const categoryGroup = categoryField.closest('.form-group');
+
+        if (selectElement.value === 'SIP') {
+            categoryGroup.style.display = 'none';
+        } else {
+            categoryGroup.style.display = 'block';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const typeSelect = document.getElementById('id_recurrence_type');
+        if (typeSelect) {
+            toggleCategory(typeSelect);
+        }
+    });
+</script>
+{% endblock %}
